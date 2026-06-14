@@ -636,7 +636,7 @@ elif page == "Stakeholder Map":
 
     map_col, info_col = st.columns([3, 2], gap="large")
 
-  with map_col:
+    with map_col:
         # Build dynamic pins from metadata
         actor_pins_svg = ""
         
@@ -658,14 +658,14 @@ elif page == "Stakeholder Map":
             stroke = "#0D1B2A" if selected_actor_for_map == actor else "white"
             sw = 2.5 if selected_actor_for_map == actor else 1.5
             
-            # FIXED: Single-line strings to prevent Streamlit Markdown from breaking the HTML
+            # Single-line strings to prevent Streamlit Markdown from breaking the HTML
             actor_pins_svg += f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{color}" fill-opacity="{opacity}" stroke="{stroke}" stroke-width="{sw}"/>'
             
             # Score label
             if selected_actor_for_map == actor or selected_actor_for_map == "All":
                 actor_pins_svg += f'<text x="{cx}" y="{cy+0.4}" text-anchor="middle" dominant-baseline="middle" font-family="DM Mono, monospace" font-size="6" fill="white" font-weight="500">{score:.1f}</text>'
 
-        # FIXED: Removed all empty blank lines inside the SVG template
+        # Removed all empty blank lines inside the SVG template
         italy_svg = f"""
         <svg viewBox="0 0 500 750" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:420px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.08));">
           <defs>
