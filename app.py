@@ -636,11 +636,9 @@ elif page == "Stakeholder Map":
 
     map_col, info_col = st.columns([3, 2], gap="large")
 
-    with map_col:
-        # Italy SVG map with actor pins
+  with map_col:
         # Build dynamic pins from metadata
         actor_pins_svg = ""
-        pin_labels_svg = ""
         
         selected_actor_for_map = st.selectbox(
             "Highlight actor",
@@ -659,32 +657,24 @@ elif page == "Stakeholder Map":
             opacity = 1.0 if (selected_actor_for_map == "All" or selected_actor_for_map == actor) else 0.2
             stroke = "#0D1B2A" if selected_actor_for_map == actor else "white"
             sw = 2.5 if selected_actor_for_map == actor else 1.5
-            actor_pins_svg += f"""
-            <circle cx="{cx}" cy="{cy}" r="{r}" fill="{color}" 
-                    fill-opacity="{opacity}" stroke="{stroke}" stroke-width="{sw}"/>
-            """
+            
+            # FIXED: Single-line strings to prevent Streamlit Markdown from breaking the HTML
+            actor_pins_svg += f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{color}" fill-opacity="{opacity}" stroke="{stroke}" stroke-width="{sw}"/>'
+            
             # Score label
             if selected_actor_for_map == actor or selected_actor_for_map == "All":
-                actor_pins_svg += f"""
-                <text x="{cx}" y="{cy+0.4}" text-anchor="middle" dominant-baseline="middle"
-                      font-family="DM Mono, monospace" font-size="6" fill="white" font-weight="500">
-                    {score:.1f}
-                </text>"""
+                actor_pins_svg += f'<text x="{cx}" y="{cy+0.4}" text-anchor="middle" dominant-baseline="middle" font-family="DM Mono, monospace" font-size="6" fill="white" font-weight="500">{score:.1f}</text>'
 
+        # FIXED: Removed all empty blank lines inside the SVG template
         italy_svg = f"""
-        <svg viewBox="0 0 500 750" xmlns="http://www.w3.org/2000/svg"
-             style="width:100%;max-width:420px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.08));">
+        <svg viewBox="0 0 500 750" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:420px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.08));">
           <defs>
             <linearGradient id="seaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" style="stop-color:#EEF6FF;stop-opacity:1" />
               <stop offset="100%" style="stop-color:#D6E8F8;stop-opacity:1" />
             </linearGradient>
           </defs>
-          
-          <!-- Sea background -->
           <rect width="500" height="750" fill="url(#seaGrad)" rx="4"/>
-          
-          <!-- Italy mainland — simplified path -->
           <path d="
             M 155 80  L 170 75  L 195 78  L 220 85  L 245 88
             L 270 82  L 295 78  L 320 88  L 340 102 L 348 118
@@ -703,43 +693,29 @@ elif page == "Stakeholder Map":
             L 148 182 L 146 165 L 146 148 L 148 132 L 152 115
             L 155 98  L 155 80
           " fill="#D4E4C8" stroke="#B8D0A8" stroke-width="1.5"/>
-          
-          <!-- Sicily -->
           <path d="
             M 182 620 L 195 610 L 215 605 L 238 608 L 258 618
             L 272 630 L 278 648 L 270 660 L 255 668 L 238 672
             L 218 670 L 200 660 L 188 648 L 182 635 L 182 620
           " fill="#D4E4C8" stroke="#B8D0A8" stroke-width="1.5"/>
-          
-          <!-- Sardinia -->
           <path d="
             M 58 330 L 70 318 L 82 315 L 94 320 L 102 335
             L 105 355 L 102 375 L 95 392 L 82 402 L 68 405
             L 56 398 L 48 382 L 46 362 L 50 345 L 58 330
           " fill="#D4E4C8" stroke="#B8D0A8" stroke-width="1.5"/>
-          
-          <!-- City labels -->
           <text x="168" y="168" font-family="DM Mono,monospace" font-size="9" fill="#4A5E75" font-weight="500">MILAN</text>
           <text x="122" y="193" font-family="DM Mono,monospace" font-size="9" fill="#4A5E75" font-weight="500">TURIN</text>
           <text x="280" y="446" font-family="DM Mono,monospace" font-size="9" fill="#4A5E75" font-weight="500">ROME</text>
           <text x="330" y="590" font-family="DM Mono,monospace" font-size="9" fill="#4A5E75" font-weight="500">NAPLES</text>
-
-          <!-- City dots -->
           <circle cx="178" cy="175" r="3" fill="#9BAABF"/>
           <circle cx="130" cy="200" r="3" fill="#9BAABF"/>
           <circle cx="290" cy="460" r="3" fill="#9BAABF"/>
           <circle cx="318" cy="578" r="3" fill="#9BAABF"/>
-
-          <!-- Hairline grid / graticule -->
           <line x1="0" y1="250" x2="500" y2="250" stroke="#C8D8E8" stroke-width="0.5" stroke-dasharray="3,4"/>
           <line x1="0" y1="400" x2="500" y2="400" stroke="#C8D8E8" stroke-width="0.5" stroke-dasharray="3,4"/>
           <line x1="200" y1="0" x2="200" y2="750" stroke="#C8D8E8" stroke-width="0.5" stroke-dasharray="3,4"/>
           <line x1="350" y1="0" x2="350" y2="750" stroke="#C8D8E8" stroke-width="0.5" stroke-dasharray="3,4"/>
-          
-          <!-- Actor pins -->
           {actor_pins_svg}
-          
-          <!-- Map attribution -->
           <text x="8" y="742" font-family="DM Mono,monospace" font-size="7" fill="#9BAABF">
             Pin radius ∝ score on {pillar_labels[selected_pillar]} · {sim_year}
           </text>
@@ -869,7 +845,7 @@ elif page == "Capacity Matrix":
 # PAGE 3 · DECAY SIMULATION
 # ═══════════════════════════════════════════════════════════════════════════
 elif page == "Decay Simulation":
-    st.markdown("""
+    st.markdown(f"""
     <div style='padding:24px 0 8px;'>
         <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#7A8EA6;
                     text-transform:uppercase;margin-bottom:6px;'>Structural Decay Analysis</div>
@@ -879,8 +855,7 @@ elif page == "Decay Simulation":
             accounting for institutional stagnation since last active enforcement.
         </div>
     </div>
-    """.format(sim_year=sim_year, pillar_labels=pillar_labels, selected_pillar=selected_pillar),
-    unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
     # KPI row
     k1, k2, k3, k4 = st.columns(4)
@@ -1014,6 +989,7 @@ elif page == "Playbooks":
     </div>
     """, unsafe_allow_html=True)
 
+    # 1. FIXED DICTIONARY: Replaced triple quotes with single-line strings
     playbooks = [
         {
             "num": "01",
@@ -1022,16 +998,8 @@ elif page == "Playbooks":
             "card_class": "",
             "score_ref": "SME Networks (PMI) × Transparency = 0.1 | Trade Unions × Transparency = 2.4",
             "title": "Force SME Algorithmic Transparency via National Labour Contracts",
-            "vulnerability": """Italy's 4.4M SMEs run AI tools with zero transparency obligations in practice. 
-            Garante's enforcement is modelled on large-enterprise GDPR compliance. SMEs resist top-down 
-            regulatory mandates from Rome on cultural grounds — the <em>tessuto produttivo</em> (industrial fabric) 
-            of the North runs on trust networks, not compliance paperwork.""",
-            "vector": """Do not build open-source transparency toolkits and hope SMEs adopt them. 
-            Deploy grants to partner with <strong>Trade Unions (CGIL/CISL/UIL)</strong>, which hold a 2.4 score 
-            on System Transparency. By writing algorithmic explainability clauses directly into 
-            <strong>National Collective Labour Agreements (CCNL)</strong>, you force legally binding operational 
-            compliance via worker rights — a mechanism that already has enforcement infrastructure, bypasses 
-            corporate friction entirely, and is invisible to the lobbying counterpressure from Confindustria.""",
+            "vulnerability": "Italy's 4.4M SMEs run AI tools with zero transparency obligations in practice. Garante's enforcement is modelled on large-enterprise GDPR compliance. SMEs resist top-down regulatory mandates from Rome on cultural grounds — the <em>tessuto produttivo</em> (industrial fabric) of the North runs on trust networks, not compliance paperwork.",
+            "vector": "Do not build open-source transparency toolkits and hope SMEs adopt them. Deploy grants to partner with <strong>Trade Unions (CGIL/CISL/UIL)</strong>, which hold a 2.4 score on System Transparency. By writing algorithmic explainability clauses directly into <strong>National Collective Labour Agreements (CCNL)</strong>, you force legally binding operational compliance via worker rights — a mechanism that already has enforcement infrastructure, bypasses corporate friction entirely, and is invisible to the lobbying counterpressure from Confindustria.",
             "entry": "CGIL Digital Rights desk (cgil.it/tematiche/digitale)",
             "timeline": "12–18 months for CCNL negotiation cycle",
             "budget_range": "€150K–400K (legal drafting + union partnership)",
@@ -1043,17 +1011,8 @@ elif page == "Playbooks":
             "card_class": "",
             "score_ref": "CDP × Risk Auditing = 0.1 | CDP Venture Capital × SME Sandboxes = 2.1",
             "title": "Embed Safety Conditionality Inside the €30B CDP Funding Pipeline",
-            "vulnerability": """CDP commands maximum capital deployment leverage (3.0 on Funding) but runs 
-            near-zero AI risk auditing capacity (0.1). Italy's promotional banking tradition — inherited from 
-            IRI-era state capitalism — prioritises deployment velocity over risk oversight. Unlike the EIB, 
-            which integrated AI ethics criteria in 2021, CDP applies no safety due diligence to AI investments. 
-            This creates an unmonitored €30B+ capital pipeline.""",
-            "vector": """Do not lobby Garante to impose restrictions on financial flows — that crosses 
-            institutional mandates and will be blocked. Instead, launch a <strong>capital-conditionality campaign</strong> 
-            targeting <strong>CDP Venture Capital</strong>, which already has a 2.1 score on SME Sandboxes — they are 
-            reform-adjacent. Design and advocate for mandatory 'AI Safety Due Diligence' criteria as a 
-            prerequisite for deep-tech portfolio entry. Model this on the EIB's AI Ethics Framework (2021) 
-            and propose it as a reputational upgrade ahead of Italy's 2026 G7 Presidency.""",
+            "vulnerability": "CDP commands maximum capital deployment leverage (3.0 on Funding) but runs near-zero AI risk auditing capacity (0.1). Italy's promotional banking tradition — inherited from IRI-era state capitalism — prioritises deployment velocity over risk oversight. Unlike the EIB, which integrated AI ethics criteria in 2021, CDP applies no safety due diligence to AI investments. This creates an unmonitored €30B+ capital pipeline.",
+            "vector": "Do not lobby Garante to impose restrictions on financial flows — that crosses institutional mandates and will be blocked. Instead, launch a <strong>capital-conditionality campaign</strong> targeting <strong>CDP Venture Capital</strong>, which already has a 2.1 score on SME Sandboxes — they are reform-adjacent. Design and advocate for mandatory 'AI Safety Due Diligence' criteria as a prerequisite for deep-tech portfolio entry. Model this on the EIB's AI Ethics Framework (2021) and propose it as a reputational upgrade ahead of Italy's 2026 G7 Presidency.",
             "entry": "CDP Venture Capital ESG working group + MEF strategic oversight desk",
             "timeline": "18–24 months (investment committee policy change)",
             "budget_range": "€80K–200K (policy research + advocacy coalition)",
@@ -1065,68 +1024,20 @@ elif page == "Playbooks":
             "card_class": "red",
             "score_ref": "Garante/AgID (Rome) vs Lombardy Region sandbox score = 3.0",
             "title": "Avoid Centralised Registries — Bridge the Rome–Region Divide Instead",
-            "vulnerability": """Italy's constitutional architecture creates a structural trap: central regulators 
-            in Rome hold broad statutory AI oversight mandates but lack operational budget lines and SME reach, 
-            while wealthy northern regions (especially Lombardy) hold cash reserves and political will for AI 
-            sandboxes but operate completely outside national safety frameworks. Centralised registries proposed 
-            in Rome get ignored in Milan.""",
-            "vector": """Do not advocate for unified federal AI registries or central reporting mandates — 
-            these trigger constitutional gridlock (Art. 117 competency disputes) and are functionally ignored 
-            north of the Po valley. Instead, use capital to place <strong>civil society technologists as 
-            'transparency embeds'</strong> inside Lombardy Region's active sandbox programme. 
-            This validates Rome's safety standards through regional execution power, creating 
-            an <em>implementation fait accompli</em> that central regulators can then formalise upward.""",
-            "entry": "Lombardy Region Innovation Unit (regione.lombardia.it/wps/portal/istituzionale/HP/DettaglioRedazionale/servizi-e-informazioni/Imprese/innovazione)",
+            "vulnerability": "Italy's constitutional architecture creates a structural trap: central regulators in Rome hold broad statutory AI oversight mandates but lack operational budget lines and SME reach, while wealthy northern regions (especially Lombardy) hold cash reserves and political will for AI sandboxes but operate completely outside national safety frameworks. Centralised registries proposed in Rome get ignored in Milan.",
+            "vector": "Do not advocate for unified federal AI registries or central reporting mandates — these trigger constitutional gridlock (Art. 117 competency disputes) and are functionally ignored north of the Po valley. Instead, use capital to place <strong>civil society technologists as 'transparency embeds'</strong> inside Lombardy Region's active sandbox programme. This validates Rome's safety standards through regional execution power, creating an <em>implementation fait accompli</em> that central regulators can then formalise upward.",
+            "entry": "Lombardy Region Innovation Unit",
             "timeline": "6–12 months to embed; 24 months to formalise",
             "budget_range": "€120K–300K (technologist embeds + documentation)",
         },
     ]
 
+    # 2. FIXED HTML RENDERER: Single-line string to prevent markdown breaks
     for pb in playbooks:
-        st.markdown(f"""
-        <div class='s-card {pb["card_class"]}'>
-            <div style='display:flex;align-items:flex-start;gap:20px;'>
-                <div style='font-family:DM Mono,monospace;font-size:32px;font-weight:500;
-                            color:#DDE2EA;line-height:1;flex-shrink:0;'>{pb["num"]}</div>
-                <div style='flex:1;'>
-                    <div style='margin-bottom:8px;'>
-                        <span class='badge {pb["badge_class"]}'>{pb["badge"]}</span>
-                        <span style='font-family:DM Mono,monospace;font-size:10px;color:#9BAABF;
-                                     margin-left:10px;'>{pb["score_ref"]}</span>
-                    </div>
-                    <div style='font-size:16px;font-weight:700;color:#0D1B2A;margin-bottom:12px;'>{pb["title"]}</div>
-                    
-                    <div style='font-size:11px;font-family:DM Mono,monospace;letter-spacing:.08em;
-                                text-transform:uppercase;color:#7A8EA6;margin-bottom:4px;'>The Vulnerability</div>
-                    <div style='font-size:13px;color:#4A5E75;line-height:1.7;margin-bottom:14px;'>{pb["vulnerability"]}</div>
-                    
-                    <div style='font-size:11px;font-family:DM Mono,monospace;letter-spacing:.08em;
-                                text-transform:uppercase;color:#7A8EA6;margin-bottom:4px;'>The Execution Vector</div>
-                    <div style='font-size:13px;color:#2C3E50;line-height:1.7;margin-bottom:14px;'>{pb["vector"]}</div>
-                    
-                    <div style='display:flex;gap:24px;flex-wrap:wrap;border-top:1px solid #F0F2F6;padding-top:12px;'>
-                        <div>
-                            <div style='font-family:DM Mono,monospace;font-size:9px;letter-spacing:.1em;
-                                        text-transform:uppercase;color:#9BAABF;margin-bottom:3px;'>Entry Point</div>
-                            <div style='font-size:11px;color:#0072CE;'>{pb["entry"]}</div>
-                        </div>
-                        <div>
-                            <div style='font-family:DM Mono,monospace;font-size:9px;letter-spacing:.1em;
-                                        text-transform:uppercase;color:#9BAABF;margin-bottom:3px;'>Timeline</div>
-                            <div style='font-size:11px;color:#0D1B2A;'>{pb["timeline"]}</div>
-                        </div>
-                        <div>
-                            <div style='font-family:DM Mono,monospace;font-size:9px;letter-spacing:.1em;
-                                        text-transform:uppercase;color:#9BAABF;margin-bottom:3px;'>Indicative Budget</div>
-                            <div style='font-size:11px;color:#0D1B2A;'>{pb["budget_range"]}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        card_html = f"<div class='s-card {pb['card_class']}'><div style='display:flex;align-items:flex-start;gap:20px;'><div style='font-family:DM Mono,monospace;font-size:32px;font-weight:500;color:#DDE2EA;line-height:1;flex-shrink:0;'>{pb['num']}</div><div style='flex:1;'><div style='margin-bottom:8px;'><span class='badge {pb['badge_class']}'>{pb['badge']}</span><span style='font-family:DM Mono,monospace;font-size:10px;color:#9BAABF;margin-left:10px;'>{pb['score_ref']}</span></div><div style='font-size:16px;font-weight:700;color:#0D1B2A;margin-bottom:12px;'>{pb['title']}</div><div style='font-size:11px;font-family:DM Mono,monospace;letter-spacing:.08em;text-transform:uppercase;color:#7A8EA6;margin-bottom:4px;'>The Vulnerability</div><div style='font-size:13px;color:#4A5E75;line-height:1.7;margin-bottom:14px;'>{pb['vulnerability']}</div><div style='font-size:11px;font-family:DM Mono,monospace;letter-spacing:.08em;text-transform:uppercase;color:#7A8EA6;margin-bottom:4px;'>The Execution Vector</div><div style='font-size:13px;color:#2C3E50;line-height:1.7;margin-bottom:14px;'>{pb['vector']}</div><div style='display:flex;gap:24px;flex-wrap:wrap;border-top:1px solid #F0F2F6;padding-top:12px;'><div><div style='font-family:DM Mono,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#9BAABF;margin-bottom:3px;'>Entry Point</div><div style='font-size:11px;color:#0072CE;'>{pb['entry']}</div></div><div><div style='font-family:DM Mono,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#9BAABF;margin-bottom:3px;'>Timeline</div><div style='font-size:11px;color:#0D1B2A;'>{pb['timeline']}</div></div><div><div style='font-family:DM Mono,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#9BAABF;margin-bottom:3px;'>Indicative Budget</div><div style='font-size:11px;color:#0D1B2A;'>{pb['budget_range']}</div></div></div></div></div></div>"
+        st.markdown(card_html, unsafe_allow_html=True)
 
-    # PNRR funding reference
+    # 3. PNRR Funding Reference
     st.markdown("""
     <div class='section-rule'>
         <span class='label'>PNRR Funding Access Reference</span><div class='line'></div>
@@ -1142,15 +1053,7 @@ elif page == "Playbooks":
 
     rows_html = ""
     for stream, budget, eligible, instrument, portal in pnrr_rows:
-        rows_html += f"""
-        <tr>
-            <td><strong>{stream}</strong></td>
-            <td style='font-family:DM Mono,monospace;color:#0072CE;'>{budget}</td>
-            <td>{eligible}</td>
-            <td>{instrument}</td>
-            <td><a href='https://{portal}' style='color:#0072CE;text-decoration:none;
-                font-family:DM Mono,monospace;font-size:11px;'>{portal}</a></td>
-        </tr>"""
+        rows_html += f"<tr><td><strong>{stream}</strong></td><td style='font-family:DM Mono,monospace;color:#0072CE;'>{budget}</td><td>{eligible}</td><td>{instrument}</td><td><a href='https://{portal}' style='color:#0072CE;text-decoration:none;font-family:DM Mono,monospace;font-size:11px;'>{portal}</a></td></tr>"
 
     st.markdown(f"""
     <table class='styled-table'>
