@@ -5,11 +5,88 @@ import numpy as np
 import seaborn as sns
 from matplotlib.colors import LinearSegmentedColormap
 
-# ─── PAGE CONFIGURATION ──────────────────────────────────────────────────────
-st.set_page_config(page_title="AI Governance Simulator", layout="wide")
+# ─── PAGE CONFIGURATION & CORPORATE THEME ──────────────────────────────────────
+st.set_page_config(page_title="AI Governance Strategic Engine | Italy", layout="wide")
 
-st.title("Italy AI Governance: Temporal Decay Simulator")
-st.markdown("Use the sidebar controls to simulate how historical policy stagnation degrades an institution's readiness score over time.")
+# Custom CSS for an ultra-clean corporate presentation style
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+        color: #1A1A1A;
+    }
+    .stApp {
+        background-color: #FFFFFF;
+    }
+    /* Executive KPI Cards */
+    .kpi-card {
+        background-color: #F8F9FA;
+        border-left: 5px solid #002B49;
+        padding: 20px;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        margin-bottom: 10px;
+    }
+    .kpi-card.alert {
+        border-left: 5px solid #E63946;
+    }
+    .kpi-title {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #5A6A85;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    .kpi-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #002B49;
+    }
+    .kpi-value.alert {
+        color: #E63946;
+    }
+    .kpi-subtitle {
+        font-size: 12px;
+        color: #7A8B9E;
+        margin-top: 4px;
+    }
+    /* Strategy Matrix Cards */
+    .strategy-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 6px;
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+    .badge-do {
+        background-color: #EBFFFA;
+        color: #00A389;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 12px;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
+    .badge-not {
+        background-color: #FFEBEB;
+        color: #E63946;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 12px;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
+    </style>
+""", unsafe_allow_index=True)
+
+# ─── HEADER ──────────────────────────────────────────────────────────────────
+st.markdown("<p style='color: #002B49; font-size: 28px; font-weight: 700; margin-bottom: 5px;'>Italy AI Governance: Strategic Decision Engine</p>", unsafe_allow_index=True)
+st.markdown("<p style='color: #555555; font-size: 14px; margin-bottom: 25px;'>Stress-testing public administration adoption, regulatory latency, and institutional structural drivers under the 2024-2026 National Strategy.</p>", unsafe_allow_index=True)
 
 # ─── DATA SETUP ──────────────────────────────────────────────────────────────
 @st.cache_data
@@ -110,102 +187,100 @@ def load_data():
     return data, weights
 
 structured_data, ACTIVITY_WEIGHTS = load_data()
-
 pillars = ['Risk_Auditing', 'Data_Privacy', 'SME_Sandboxes', 'Transparency', 'Funding_Grants']
 actors = list(structured_data.keys())
 
-# ─── UI CONTROLS (SIDEBAR) ───────────────────────────────────────────────────
+# ─── SIDEBAR DESIGN ─────────────────────────────────────────────────────────
 with st.sidebar:
-    st.image("https://flagcdn.com/w160/it.png", width=50)
-    st.header("Simulation Engine")
-    st.markdown("Adjust parameters to stress-test the Italian AI Governance ecosystem.")
+    st.markdown("<p style='font-size: 18px; font-weight: 700; color: #002B49; margin-bottom: 5px;'>Simulation Controls</p>", unsafe_allow_index=True)
+    st.markdown("Modify baseline structural constraints to stress-test ecosystem metrics.")
     st.divider()
     
-    selected_pillar = st.selectbox("🎯 Target Governance Pillar", options=pillars)
-    sim_year = st.slider("⏱️ Simulation Year", min_value=2023, max_value=2030, value=2025, step=1)
-    
-    st.divider()
-    st.markdown("**Advanced Assumptions**")
-    decay_base = st.slider("📉 Decay Base Penalty", min_value=0.50, max_value=1.00, value=0.88, step=0.01, 
-                           help="0.88 means an actor loses 12% of their score for every year a policy sits dormant without enforcement.")
+    selected_pillar = st.selectbox("Strategic Metric", options=pillars, format_func=lambda x: x.replace('_', ' '))
+    sim_year = st.slider("Simulation Horizon", min_value=2023, max_value=2030, value=2026, step=1)
+    decay_base = st.slider("Dormancy Decay Factor", min_value=0.50, max_value=1.00, value=0.88, step=0.01, 
+                           help="Calculates policy obsolescence. At 0.88, static portfolios lose ~12% structural efficiency annually if enforcement stays dormant.")
 
-# ─── MATH ENGINE (Must happen before KPIs) ───────────────────────────────────
+# ─── COMPUTE ENGINE ──────────────────────────────────────────────────────────
 simulated_scores = {}
 for actor in actors:
     cell = structured_data[actor][selected_pillar]
-    
     activity_w = ACTIVITY_WEIGHTS[cell['activity_type']]
     reach_bonus = 1 + cell['reach']
     raw = cell['mandate'] + activity_w * reach_bonus
-    
     years_stale = max(0, sim_year - cell['last_year'])
     score = min(3.0, round(raw * (decay_base ** years_stale), 2))
-    
     simulated_scores[actor] = score
 
 s_series = pd.Series(simulated_scores).sort_values(ascending=True)
 
-# ─── EXECUTIVE SUMMARY KPIs ──────────────────────────────────────────────────
-st.markdown("### Ecosystem Health Overview")
+# ─── EXECUTIVE KPI CARD CONTAINER ────────────────────────────────────────────
 col1, col2, col3 = st.columns(3)
-
-avg_decay = s_series.mean()
-most_vulnerable = s_series.index[0]
-strongest = s_series.index[-1]
-
 with col1:
-    st.metric(label="Average Pillar Readiness (0-3)", value=f"{avg_decay:.2f}", delta="-0.15 YoY" if sim_year > 2024 else None)
+    st.markdown(f"""
+        <div class='kpi-card'>
+            <div class='kpi-title'>Avg Portfolio Readiness</div>
+            <div class='kpi-value'>{s_series.mean():.2f} / 3.00</div>
+            <div class='kpi-subtitle'>Simulated global system mean</div>
+        </div>
+    """, unsafe_allow_index=True)
 with col2:
-    st.metric(label="Most Vulnerable Actor", value=most_vulnerable, delta="High Risk", delta_color="inverse")
+    st.markdown(f"""
+        <div class='kpi-card alert'>
+            <div class='kpi-title'>Maximum Systemic Risk</div>
+            <div class='kpi-value alert'>{s_series.index[0]}</div>
+            <div class='kpi-subtitle'>Lowest metric output capacity</div>
+        </div>
+    """, unsafe_allow_index=True)
 with col3:
-    st.metric(label="Highest Capacity Actor", value=strongest, delta="Anchor Partner")
+    st.markdown(f"""
+        <div class='kpi-card'>
+            <div class='kpi-title'>Ecosystem Anchor Partner</div>
+            <div class='kpi-value'>{s_series.index[-1]}</div>
+            <div class='kpi-subtitle'>Highest functional capacity cell</div>
+        </div>
+    """, unsafe_allow_index=True)
 
-st.divider()
+st.markdown("<br>", unsafe_allow_index=True)
 
-# ─── MAIN DASHBOARD TABS ─────────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["📉 Temporal Decay Simulator", "🗺️ Ecosystem Heatmap", "🎯 Strategic Interventions"])
+# ─── ANALYTICAL WORKSPACES ───────────────────────────────────────────────────
+tab1, tab2, tab3 = st.tabs(["📊 Capacity Delta Profile", "🏁 Matrix Analytics", "♟️ Strategic Playbooks"])
 
 with tab1:
-    st.markdown("#### Simulating Policy 'Rot' over Time")
+    clean_pillar_name = selected_pillar.replace('_', ' ')
     
-    # Render Matplotlib Figure
+    # Render Matplotlib Figure with strict minimalist styling
     plt.rcParams['font.sans-serif'] = ['Arial', 'Helvetica', 'DejaVu Sans']
-    fig, ax = plt.subplots(figsize=(10, 6.5), facecolor='#FFFFFF')
+    fig, ax = plt.subplots(figsize=(10, 5.5), facecolor='#FFFFFF')
     ax.set_facecolor('#FFFFFF')
 
     colors = ['#E63946' if i == 0 else '#002B49' for i in range(len(s_series))]
-    bars = ax.barh(s_series.index, s_series.values, color=colors, height=0.6)
+    bars = ax.barh(s_series.index, s_series.values, color=colors, height=0.55)
 
     for bar, val in zip(bars, s_series.values):
-        ax.text(val + 0.05, bar.get_y() + bar.get_height()/2, 
+        ax.text(val + 0.04, bar.get_y() + bar.get_height()/2, 
                 f'{val:.2f}', va='center', fontweight='bold', 
-                color=bar.get_facecolor(), fontsize=11)
+                color=bar.get_facecolor(), fontsize=10)
         
-    ax.set_xlim(0, 3.5)
+    ax.set_xlim(0, 3.4)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['bottom'].set_visible(False)
     ax.spines['left'].set_visible(False)
     ax.tick_params(axis='both', length=0)
     ax.set_xticks([])
-    ax.set_yticklabels(s_series.index, fontsize=11, fontweight='500', color='#333333')
+    ax.set_yticklabels(s_series.index, fontsize=10.5, fontweight='500', color='#2C2C2A')
 
-    clean_pillar_name = selected_pillar.replace('_', ' ')
-    fig.text(0.05, 1.05, f"Decay Simulation: {clean_pillar_name}", 
-             fontsize=16, fontweight='bold', color='#111111')
-    fig.text(0.05, 0.99, f"Projected scores in {sim_year} applying a {decay_base} decay curve to historical policies.", 
-             fontsize=11, color='#555555')
+    fig.text(0.02, 0.96, f"Structural Decay Simulation: {clean_pillar_name}", fontsize=14, fontweight='bold', color='#111111')
+    fig.text(0.02, 0.90, f"Simulated systemic capacity in {sim_year} accounting for historical performance stagnation.", fontsize=10.5, color='#555555')
 
     plt.tight_layout()
     st.pyplot(fig)
-    
-    st.info("**Strategic Insight:** Notice how 'On-Paper' mandates from 2021/2022 quickly drag an actor to the bottom of the rankings if no active enforcement has occurred recently.")
 
 with tab2:
-    st.markdown("#### Dynamic Ecosystem Heatmap")
-    st.markdown("This matrix automatically updates based on your **Simulation Year** and **Decay** sliders in the sidebar. Red dots indicate key intervention opportunities.")
+    st.markdown("<p style='font-size: 16px; font-weight: 700; color: #111111;'>Dynamic Matrix Cross-Reference</p>", unsafe_allow_index=True)
+    st.markdown("<p style='font-size: 13px; color: #555555;'>This system architecture matrix updates dynamically as simulation parameters shift. Red indicators represent prioritized non-profit intervention fields.</p>", unsafe_allow_index=True)
     
-    # 1. Calculate the full matrix dynamically based on current slider values
     heatmap_data = []
     for actor in actors:
         actor_scores = {}
@@ -218,8 +293,7 @@ with tab2:
         
     df_heat = pd.DataFrame(heatmap_data, index=actors)
 
-    # 2. Draw the McKinsey-style professional Heatmap
-    fig2, ax2 = plt.subplots(figsize=(11, 7), facecolor='#FFFFFF')
+    fig2, ax2 = plt.subplots(figsize=(11, 6.5), facecolor='#FFFFFF')
     ax2.set_facecolor('#FFFFFF')
     
     prof_cmap = LinearSegmentedColormap.from_list(
@@ -236,19 +310,17 @@ with tab2:
         annot_kws={'size': 11, 'weight': 'bold'},
         linewidths=3,
         linecolor='white',
-        cbar=False           
+        cbar=False            
     )
 
-    # 3. Clean up the Axes
     ax2.xaxis.tick_top()
     ax2.xaxis.set_label_position('top')
     ax2.tick_params(left=False, top=False, bottom=False)
 
     clean_headers = [p.replace('_', ' ') for p in pillars]
-    ax2.set_xticklabels(clean_headers, rotation=0, ha='center', fontsize=11, fontweight='bold', color='#333333')
-    ax2.set_yticklabels(df_heat.index, rotation=0, fontsize=11, fontweight='500', color='#333333')
+    ax2.set_xticklabels(clean_headers, rotation=0, ha='center', fontsize=10, fontweight='bold', color='#333333')
+    ax2.set_yticklabels(df_heat.index, rotation=0, fontsize=10.5, fontweight='500', color='#333333')
 
-    # 4. Add the Intervention Opportunity Flags
     flags = [(6, 2), (2, 0), (6, 3), (11, 2), (8, 2), (4, 3)]
     for (y, x) in flags:
         ax2.plot(x + 0.85, y + 0.15, marker='o', markersize=8, color='#E63946', markeredgecolor='white')
@@ -257,49 +329,36 @@ with tab2:
     st.pyplot(fig2)
     
 with tab3:
-    st.markdown("#### 🎯 Strategic Playbooks for Non-Profits")
-    st.markdown("Based on our temporal decay and capacity models, we have identified the **Top 3 structural vulnerabilities** in the Italian AI ecosystem. Below are tailored, high-leverage intervention strategies for international non-profits.")
+    st.markdown("<p style='font-size: 16px; font-weight: 700; color: #111111;'>Strategic Arbitrage & Capital Deployment Playbooks</p>", unsafe_allow_index=True)
+    st.markdown("<p style='font-size: 13.5px; color: #555555;'>Cross-referencing legal mandates against structural funding pipelines isolates three key intervention vectors. Philanthropic grants should bypass standard regulatory lobbying and align with these operational levers.</p>", unsafe_allow_index=True)
     st.divider()
 
-    # ─── INTERVENTION 1 ──────────────────────────────────────────────────────────
-    st.markdown("##### 1. The SME Transparency Void")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.warning("**The Gap:** 99% of Italian businesses are SMEs, yet zero algorithmic disclosure norms exist for them.")
-        st.markdown("**Root Cause (Cultural):** Italy's industrial fabric relies heavily on informal, high-trust local networks rather than public registries. Digital compliance is historically viewed as a bureaucratic tax rather than an innovation driver.")
-    with col2:
-        st.success("**The Playbook:** Bottom-Up Pressure")
-        st.markdown("""
-        * ❌ **Avoid:** Selling generic "AI Transparency Toolkits" directly to resource-constrained SMEs.
-        * ✅ **Action:** Partner with **Trade Unions (CGIL/CISL)** to legally demand algorithmic explainability in HR/recruitment tools during collective bargaining.
-        * ✅ **Action:** Use **Altroconsumo** to pressure B2C SMEs from the consumer demand side.
-        """)
-    st.divider()
+    # ─── PLAYBOOK 1 ──────────────────────────────────────────────────────────
+    st.markdown("""
+        <div class='strategy-card'>
+            <div class='badge-do'>RECOMMENDED STRATEGY</div>
+            <p style='font-size: 15px; font-weight: 700; color: #002B49; margin-top:5px; margin-bottom:5px;'>1. Force SME Algorithmic Transparency via National Labor Contracts</p>
+            <p style='font-size: 13.5px; color: #333333;'><b>The Vulnerability:</b> While SME Networks (PMI) maintain non-existent transparency and sandbox scores (0.1), Italy's business infrastructure relies natively on high-trust informal local relationships, heavily resisting top-down regulatory reporting dictates from Rome.</p>
+            <p style='font-size: 13.5px; color: #333333;'><b>The Execution Vector:</b> Do not build open-source transparency toolkits for business entities. Instead, deploy grants to partner with major <b>Trade Unions (CGIL/CISL/UIL)</b>. Unions hold a robust 2.4 capacity on System Transparency. By writing algorithmic explainability mandates directly into National Collective Labor Agreements (CCNL), non-profits force legally binding operational compliance via established worker rights, entirely bypassing corporate friction.</p>
+        </div>
+    """, unsafe_allow_index=True)
 
-    # ─── INTERVENTION 2 ──────────────────────────────────────────────────────────
-    st.markdown("##### 2. The €30B Mandate Blindspot")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.warning("**The Gap:** CDP allocates billions in PNRR tech funding but requires zero AI risk-auditing from its beneficiaries.")
-        st.markdown("**Root Cause (Geopolitical/Legal):** CDP operates strictly under financial/ESG mandates. Italian financial law does not yet officially classify 'Algorithmic Risk' as a financial or environmental liability.")
-    with col2:
-        st.success("**The Playbook:** Redefining ESG")
-        st.markdown("""
-        * ❌ **Avoid:** Lobbying CDP's tech division to build an internal AI ethics team (they lack the legal mandate).
-        * ✅ **Action:** Lobby the Ministry of Economy to formally classify *AI Model Risk* under standard national ESG compliance metrics.
-        * ✅ **Action:** Provide technical support to the **Corte dei Conti** (Judicial Audit) to track how PNRR automated-decision funds are executed.
-        """)
-    st.divider()
+    # ─── PLAYBOOK 2 ──────────────────────────────────────────────────────────
+    st.markdown("""
+        <div class='strategy-card'>
+            <div class='badge-do'>RECOMMENDED STRATEGY</div>
+            <p style='font-size: 15px; font-weight: 700; color: #002B49; margin-top:5px; margin-bottom:5px;'>2. Embed Safety Conditionality inside the €30B CDP Funding Pipeline</p>
+            <p style='font-size: 13.5px; color: #333333;'><b>The Vulnerability:</b> Cassa Depositi e Prestiti (CDP) commands maximum capital deployment leverage (3.0) but runs a near-zero internal AI risk auditing capability (0.1). Italy's promotional banking tradition prioritizes macroeconomic transition speed over risk oversight, creating an unmonitored capital pipeline.</p>
+            <p style='font-size: 13.5px; color: #333333;'><b>The Execution Vector:</b> Do not lobby the national data protection authority to curb financial lines. Instead, launch a capital-conditionality campaign targeting <b>CDP Venture Capital</b>. Because they maintain an active 2.1 footprint in SME Innovation Sandboxes, philanthropists can design and lobby for mandatory 'AI Safety Due Diligence' criteria, embedding compliance parameters directly into the deployment terms of deep-tech venture funds.</p>
+        </div>
+    """, unsafe_allow_index=True)
 
-    # ─── INTERVENTION 3 ──────────────────────────────────────────────────────────
-    st.markdown("##### 3. The Rome-Regional Disconnect")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.warning("**The Gap:** Rome writes the rules, but the Regions hold the innovation money.")
-        st.markdown("**Root Cause (Geopolitical):** The EU AI Act relies on national bodies (Garante, AgID) for enforcement, but actual PNRR sandbox and testbed funds flow heavily through decentralized regional governments.")
-    with col2:
-        st.success("**The Playbook:** The 'Ethical Testbed' Bridge")
-        st.markdown("""
-        * ❌ **Avoid:** Waiting for Rome-based agencies (AgID) to fund AI sandboxes; they are severely under-resourced.
-        * ✅ **Action:** Secure regional PNRR testbed funds via the **Lombardy Region** or **CDP Venture Capital**, but *voluntarily* apply AgID's strict risk frameworks to the project to create a gold-standard, cross-border case study.
-        """)
+    # ─── PLAYBOOK 3 ──────────────────────────────────────────────────────────
+    st.markdown("""
+        <div class='strategy-card'>
+            <div class='badge-not'>COUNTER-RECOMMENDED LOBBYING</div>
+            <p style='font-size: 15px; font-weight: 700; color: #E63946; margin-top:5px; margin-bottom:5px;'>3. Avoid Centralized Registries — Bridge the Rome-Regional Divide Instead</p>
+            <p style='font-size: 13.5px; color: #333333;'><b>The Structural Trap:</b> Italy's constitutional architecture creates a deep disconnect: central regulators in Rome (Garante, AgID) possess broad statutory oversight mandates but lack operational budget lines, while wealthy northern regions (Lombardy Region, scoring 3.0 on sandboxes) hold cash reserves but operate completely untethered from centralized safety frameworks.</p>
+            <p style='font-size: 13.5px; color: #333333;'><b>The Execution Vector:</b> Do not advocate for centralized registries or unified federal mandates; these initiatives trigger constitutional gridlock and are functionally ignored. Instead, use capital to place civil society technologists as 'transparency embeds' inside active regional sandbox hubs, validating Rome's standards through regional execution power.</p>
+        </div>
+    """, unsafe_allow_index=True)
