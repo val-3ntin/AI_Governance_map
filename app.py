@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from matplotlib.colors import LinearSegmentedColormap
+import plotly.graph_objects as go
 
 # ─── PAGE CONFIG ────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -361,20 +362,21 @@ def load_data():
             'Funding_Grants':{'mandate':1,'activity_type':'active_soft',    'last_year':2025,'reach':0},
         },
     }
-    # Actor metadata: location, group, city, coordinates (for SVG map placement)
+    
+    # Actor metadata: location, group, city, Real Lat/Lon Coordinates
     actor_meta = {
-        'Garante (DPA)':            {'group':'Government',   'city':'Rome',    'cx':295,'cy':455, 'color':'#0072CE'},
-        'AgID':                     {'group':'Government',   'city':'Rome',    'cx':305,'cy':465, 'color':'#0072CE'},
-        'CDP':                      {'group':'Government',   'city':'Rome',    'cx':285,'cy':475, 'color':'#0072CE'},
-        'Corte dei Conti':          {'group':'Government',   'city':'Rome',    'cx':315,'cy':445, 'color':'#0072CE'},
-        'Lombardy Region':          {'group':'Regional',     'city':'Milan',   'cx':175,'cy':175, 'color':'#2ECC71'},
-        'Confindustria Digitale':   {'group':'Industry',     'city':'Rome',    'cx':270,'cy':455, 'color':'#F5A623'},
-        'SME Networks (PMI)':       {'group':'Industry',     'city':'National','cx':230,'cy':330, 'color':'#F5A623'},
-        'CDP Venture Capital':      {'group':'Industry',     'city':'Rome',    'cx':280,'cy':490, 'color':'#F5A623'},
-        'Altroconsumo':             {'group':'Civil Society','city':'Milan',   'cx':185,'cy':185, 'color':'#E63946'},
-        'Trade Unions (CGIL/CISL/UIL)':{'group':'Civil Society','city':'Rome','cx':260,'cy':468, 'color':'#E63946'},
-        'AIxIA':                    {'group':'Academia',     'city':'Turin',   'cx':130,'cy':200, 'color':'#9B59B6'},
-        'Fondazione Leonardo':      {'group':'Academia',     'city':'Rome',    'cx':300,'cy':480, 'color':'#9B59B6'},
+        'Garante (DPA)':            {'group':'Government',   'city':'Rome',    'lat': 41.9028, 'lon': 12.4964, 'color':'#0072CE'},
+        'AgID':                     {'group':'Government',   'city':'Rome',    'lat': 41.9200, 'lon': 12.5100, 'color':'#0072CE'},
+        'CDP':                      {'group':'Government',   'city':'Rome',    'lat': 41.8800, 'lon': 12.4800, 'color':'#0072CE'},
+        'Corte dei Conti':          {'group':'Government',   'city':'Rome',    'lat': 41.9100, 'lon': 12.4600, 'color':'#0072CE'},
+        'Lombardy Region':          {'group':'Regional',     'city':'Milan',   'lat': 45.4642, 'lon': 9.1900,  'color':'#2ECC71'},
+        'Confindustria Digitale':   {'group':'Industry',     'city':'Rome',    'lat': 41.8900, 'lon': 12.5200, 'color':'#F5A623'},
+        'SME Networks (PMI)':       {'group':'Industry',     'city':'Bologna', 'lat': 44.4949, 'lon': 11.3426, 'color':'#F5A623'},
+        'CDP Venture Capital':      {'group':'Industry',     'city':'Rome',    'lat': 41.8500, 'lon': 12.5000, 'color':'#F5A623'},
+        'Altroconsumo':             {'group':'Civil Society','city':'Milan',   'lat': 45.4800, 'lon': 9.2000,  'color':'#E63946'},
+        'Trade Unions (CGIL/CISL/UIL)':{'group':'Civil Society','city':'Rome', 'lat': 41.8700, 'lon': 12.4500, 'color':'#E63946'},
+        'AIxIA':                    {'group':'Academia',     'city':'Turin',   'lat': 45.0703, 'lon': 7.6869,  'color':'#9B59B6'},
+        'Fondazione Leonardo':      {'group':'Academia',     'city':'Rome',    'lat': 41.9300, 'lon': 12.4800, 'color':'#9B59B6'},
     }
     return data, weights, actor_meta
 
@@ -621,7 +623,7 @@ if page == "Briefing":
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# PAGE 1 · STAKEHOLDER MAP
+# PAGE 1 · STAKEHOLDER MAP (Plotly Interactive)
 # ═══════════════════════════════════════════════════════════════════════════
 elif page == "Stakeholder Map":
     st.markdown("""
@@ -629,7 +631,7 @@ elif page == "Stakeholder Map":
         <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#7A8EA6;
                     text-transform:uppercase;margin-bottom:6px;'>Geospatial Intelligence</div>
         <div style='font-size:22px;font-weight:700;color:#0D1B2A;margin-bottom:4px;'>Italian AI Actor Map</div>
-        <div style='font-size:13px;color:#7A8EA6;'>Institutional geography of the AI governance ecosystem. 
+        <div style='font-size:13px;color:#7A8EA6;'>Interactive institutional geography of the AI governance ecosystem. 
         Power is concentrated in Rome; innovation capital clusters in the North.</div>
     </div>
     """, unsafe_allow_html=True)
@@ -637,9 +639,6 @@ elif page == "Stakeholder Map":
     map_col, info_col = st.columns([3, 2], gap="large")
 
     with map_col:
-        # Build dynamic pins from metadata
-        actor_pins_svg = ""
-        
         selected_actor_for_map = st.selectbox(
             "Highlight actor",
             options=["All"] + actors,
@@ -647,83 +646,52 @@ elif page == "Stakeholder Map":
             label_visibility="collapsed"
         )
 
+        # 1. Initialize Plotly Map Figure
+        fig_map = go.Figure()
+
+        # 2. Add each actor as a coordinate point
         for actor, meta in ACTOR_META.items():
             if meta['group'] not in selected_group:
                 continue
+            
             score = simulated_scores[actor]
-            color = meta['color']
-            cx, cy = meta['cx'], meta['cy']
-            r = 6 + score * 2.5  # radius scales with score
             opacity = 1.0 if (selected_actor_for_map == "All" or selected_actor_for_map == actor) else 0.2
-            stroke = "#0D1B2A" if selected_actor_for_map == actor else "white"
-            sw = 2.5 if selected_actor_for_map == actor else 1.5
             
-            # Single-line strings to prevent Streamlit Markdown from breaking the HTML
-            actor_pins_svg += f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{color}" fill-opacity="{opacity}" stroke="{stroke}" stroke-width="{sw}"/>'
-            
-            # Score label
-            if selected_actor_for_map == actor or selected_actor_for_map == "All":
-                actor_pins_svg += f'<text x="{cx}" y="{cy+0.4}" text-anchor="middle" dominant-baseline="middle" font-family="DM Mono, monospace" font-size="6" fill="white" font-weight="500">{score:.1f}</text>'
+            # Draw the point
+            fig_map.add_trace(go.Scattermapbox(
+                lat=[meta['lat']],
+                lon=[meta['lon']],
+                mode='markers+text' if selected_actor_for_map == actor else 'markers',
+                marker=go.scattermapbox.Marker(
+                    size=10 + (score * 8),  # Radius scales cleanly with the score
+                    color=meta['color'],
+                    opacity=opacity,
+                ),
+                text=[f"{score:.1f}"] if selected_actor_for_map == actor else None,
+                textfont=dict(size=14, color='black', family="Arial Black"),
+                textposition="top right",
+                hoverinfo='text',
+                hovertext=f"<b>{actor}</b><br>Group: {meta['group']}<br>City: {meta['city']}<br>Score: <b>{score:.2f}</b>",
+                name=actor,
+                showlegend=False
+            ))
 
-        # Removed all empty blank lines inside the SVG template
-        italy_svg = f"""
-        <svg viewBox="0 0 500 750" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:420px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.08));">
-          <defs>
-            <linearGradient id="seaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#EEF6FF;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#D6E8F8;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          <rect width="500" height="750" fill="url(#seaGrad)" rx="4"/>
-          <path d="
-            M 155 80  L 170 75  L 195 78  L 220 85  L 245 88
-            L 270 82  L 295 78  L 320 88  L 340 102 L 348 118
-            L 342 130 L 328 138 L 318 150 L 310 168 L 308 188
-            L 320 205 L 338 215 L 350 228 L 358 248 L 360 265
-            L 355 280 L 342 292 L 335 308 L 338 328 L 348 342
-            L 352 355 L 348 368 L 338 378 L 322 388 L 310 402
-            L 305 418 L 310 432 L 320 445 L 328 460 L 325 478
-            L 315 492 L 305 510 L 298 528 L 305 545 L 318 558
-            L 322 572 L 315 582 L 302 578 L 290 568 L 278 558
-            L 268 545 L 260 530 L 255 515 L 248 500 L 238 488
-            L 225 480 L 215 470 L 210 455 L 215 440 L 222 428
-            L 228 415 L 225 400 L 215 388 L 205 375 L 198 360
-            L 192 345 L 188 330 L 182 315 L 175 300 L 168 285
-            L 162 268 L 158 252 L 155 235 L 152 218 L 150 200
-            L 148 182 L 146 165 L 146 148 L 148 132 L 152 115
-            L 155 98  L 155 80
-          " fill="#D4E4C8" stroke="#B8D0A8" stroke-width="1.5"/>
-          <path d="
-            M 182 620 L 195 610 L 215 605 L 238 608 L 258 618
-            L 272 630 L 278 648 L 270 660 L 255 668 L 238 672
-            L 218 670 L 200 660 L 188 648 L 182 635 L 182 620
-          " fill="#D4E4C8" stroke="#B8D0A8" stroke-width="1.5"/>
-          <path d="
-            M 58 330 L 70 318 L 82 315 L 94 320 L 102 335
-            L 105 355 L 102 375 L 95 392 L 82 402 L 68 405
-            L 56 398 L 48 382 L 46 362 L 50 345 L 58 330
-          " fill="#D4E4C8" stroke="#B8D0A8" stroke-width="1.5"/>
-          <text x="168" y="168" font-family="DM Mono,monospace" font-size="9" fill="#4A5E75" font-weight="500">MILAN</text>
-          <text x="122" y="193" font-family="DM Mono,monospace" font-size="9" fill="#4A5E75" font-weight="500">TURIN</text>
-          <text x="280" y="446" font-family="DM Mono,monospace" font-size="9" fill="#4A5E75" font-weight="500">ROME</text>
-          <text x="330" y="590" font-family="DM Mono,monospace" font-size="9" fill="#4A5E75" font-weight="500">NAPLES</text>
-          <circle cx="178" cy="175" r="3" fill="#9BAABF"/>
-          <circle cx="130" cy="200" r="3" fill="#9BAABF"/>
-          <circle cx="290" cy="460" r="3" fill="#9BAABF"/>
-          <circle cx="318" cy="578" r="3" fill="#9BAABF"/>
-          <line x1="0" y1="250" x2="500" y2="250" stroke="#C8D8E8" stroke-width="0.5" stroke-dasharray="3,4"/>
-          <line x1="0" y1="400" x2="500" y2="400" stroke="#C8D8E8" stroke-width="0.5" stroke-dasharray="3,4"/>
-          <line x1="200" y1="0" x2="200" y2="750" stroke="#C8D8E8" stroke-width="0.5" stroke-dasharray="3,4"/>
-          <line x1="350" y1="0" x2="350" y2="750" stroke="#C8D8E8" stroke-width="0.5" stroke-dasharray="3,4"/>
-          {actor_pins_svg}
-          <text x="8" y="742" font-family="DM Mono,monospace" font-size="7" fill="#9BAABF">
-            Pin radius ∝ score on {pillar_labels[selected_pillar]} · {sim_year}
-          </text>
-        </svg>
-        """
-        st.markdown(italy_svg, unsafe_allow_html=True)
+        # 3. Configure the Professional Base Map (carto-positron)
+        fig_map.update_layout(
+            mapbox=dict(
+                style="carto-positron",  # Professional, muted light-grey corporate map
+                center=dict(lat=42.5, lon=12.5), # Centered on Italy
+                zoom=4.8
+            ),
+            margin={"r":0,"t":0,"l":0,"b":0}, # Remove all padding
+            height=550,
+            paper_bgcolor="#F7F8FA"
+        )
 
-        # Legend
+        # Render the interactive map
+        st.plotly_chart(fig_map, use_container_width=True)
+
+        # Custom Legend below the map
         legend_html = "<div class='pin-legend'>"
         for group, color in GROUP_COLORS.items():
             legend_html += f"""
@@ -740,16 +708,22 @@ elif page == "Stakeholder Map":
                     text-transform:uppercase;color:#7A8EA6;margin-bottom:14px;'>Actor Directory</div>
         """, unsafe_allow_html=True)
 
-        for actor in actors:
+        # Sort actors by score (highest to lowest) for the directory display
+        sorted_actors = sorted([a for a in actors if ACTOR_META[a]['group'] in selected_group], 
+                               key=lambda x: simulated_scores[x], reverse=True)
+
+        for actor in sorted_actors:
             meta = ACTOR_META[actor]
-            if meta['group'] not in selected_group:
-                continue
             score = simulated_scores[actor]
             color = meta['color']
             bar_w = int((score / 3.0) * 100)
+            
+            # Grey out directory cards if they are not the currently selected actor
+            card_opacity = "1.0" if (selected_actor_for_map == "All" or selected_actor_for_map == actor) else "0.3"
+            
             st.markdown(f"""
             <div style='background:#FFFFFF;border:1px solid #DDE2EA;border-radius:2px;
-                        padding:12px 14px;margin-bottom:8px;'>
+                        padding:12px 14px;margin-bottom:8px; opacity:{card_opacity}; transition: opacity 0.3s;'>
                 <div style='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;'>
                     <div>
                         <div style='font-size:12px;font-weight:600;color:#0D1B2A;'>{actor}</div>
@@ -760,7 +734,7 @@ elif page == "Stakeholder Map":
                                 color:#0D1B2A;'>{score:.2f}</div>
                 </div>
                 <div style='height:3px;background:#F0F2F6;border-radius:2px;'>
-                    <div style='height:3px;width:{bar_w}%;background:{color};border-radius:2px;transition:.3s;'></div>
+                    <div style='height:3px;width:{bar_w}%;background:{color};border-radius:2px;'></div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
