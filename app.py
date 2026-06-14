@@ -82,11 +82,11 @@ st.markdown("""
         margin-bottom: 10px;
     }
     </style>
-""", unsafe_allow_index=True)
+""", unsafe_allow_html=True)
 
 # ─── HEADER ──────────────────────────────────────────────────────────────────
-st.markdown("<p style='color: #002B49; font-size: 28px; font-weight: 700; margin-bottom: 5px;'>Italy AI Governance: Strategic Decision Engine</p>", unsafe_allow_index=True)
-st.markdown("<p style='color: #555555; font-size: 14px; margin-bottom: 25px;'>Stress-testing public administration adoption, regulatory latency, and institutional structural drivers under the 2024-2026 National Strategy.</p>", unsafe_allow_index=True)
+st.markdown("<p style='color: #002B49; font-size: 28px; font-weight: 700; margin-bottom: 5px;'>Italy AI Governance: Strategic Decision Engine</p>", unsafe_allow_html=True)
+st.markdown("<p style='color: #555555; font-size: 14px; margin-bottom: 25px;'>Stress-testing public administration adoption, regulatory latency, and institutional structural drivers under the 2024-2026 National Strategy.</p>", unsafe_allow_html=True)
 
 # ─── DATA SETUP ──────────────────────────────────────────────────────────────
 @st.cache_data
@@ -192,7 +192,7 @@ actors = list(structured_data.keys())
 
 # ─── SIDEBAR DESIGN ─────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("<p style='font-size: 18px; font-weight: 700; color: #002B49; margin-bottom: 5px;'>Simulation Controls</p>", unsafe_allow_index=True)
+    st.markdown("<p style='font-size: 18px; font-weight: 700; color: #002B49; margin-bottom: 5px;'>Simulation Controls</p>", unsafe_allow_html=True)
     st.markdown("Modify baseline structural constraints to stress-test ecosystem metrics.")
     st.divider()
     
@@ -223,7 +223,7 @@ with col1:
             <div class='kpi-value'>{s_series.mean():.2f} / 3.00</div>
             <div class='kpi-subtitle'>Simulated global system mean</div>
         </div>
-    """, unsafe_allow_index=True)
+    """, unsafe_allow_html=True)
 with col2:
     st.markdown(f"""
         <div class='kpi-card alert'>
@@ -231,7 +231,7 @@ with col2:
             <div class='kpi-value alert'>{s_series.index[0]}</div>
             <div class='kpi-subtitle'>Lowest metric output capacity</div>
         </div>
-    """, unsafe_allow_index=True)
+    """, unsafe_allow_html=True)
 with col3:
     st.markdown(f"""
         <div class='kpi-card'>
@@ -239,9 +239,9 @@ with col3:
             <div class='kpi-value'>{s_series.index[-1]}</div>
             <div class='kpi-subtitle'>Highest functional capacity cell</div>
         </div>
-    """, unsafe_allow_index=True)
+    """, unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_index=True)
+st.markdown("<br>", unsafe_allow_html=True)
 
 # ─── ANALYTICAL WORKSPACES ───────────────────────────────────────────────────
 tab1, tab2, tab3 = st.tabs(["📊 Capacity Delta Profile", "🏁 Matrix Analytics", "♟️ Strategic Playbooks"])
@@ -276,11 +276,14 @@ with tab1:
 
     plt.tight_layout()
     st.pyplot(fig)
+    
+    st.info("**Strategic Insight:** Notice how 'On-Paper' mandates from 2021/2022 quickly drag an actor to the bottom of the rankings if no active enforcement has occurred recently.")
 
 with tab2:
-    st.markdown("<p style='font-size: 16px; font-weight: 700; color: #111111;'>Dynamic Matrix Cross-Reference</p>", unsafe_allow_index=True)
-    st.markdown("<p style='font-size: 13px; color: #555555;'>This system architecture matrix updates dynamically as simulation parameters shift. Red indicators represent prioritized non-profit intervention fields.</p>", unsafe_allow_index=True)
+    st.markdown("<p style='font-size: 16px; font-weight: 700; color: #111111;'>Dynamic Matrix Cross-Reference</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 13px; color: #555555;'>This system architecture matrix updates dynamically as simulation parameters shift. Red indicators represent prioritized non-profit intervention fields.</p>", unsafe_allow_html=True)
     
+    # 1. Calculate the full matrix dynamically based on current slider values
     heatmap_data = []
     for actor in actors:
         actor_scores = {}
@@ -293,6 +296,7 @@ with tab2:
         
     df_heat = pd.DataFrame(heatmap_data, index=actors)
 
+    # 2. Draw the McKinsey-style professional Heatmap
     fig2, ax2 = plt.subplots(figsize=(11, 6.5), facecolor='#FFFFFF')
     ax2.set_facecolor('#FFFFFF')
     
@@ -313,6 +317,7 @@ with tab2:
         cbar=False            
     )
 
+    # 3. Clean up the Axes
     ax2.xaxis.tick_top()
     ax2.xaxis.set_label_position('top')
     ax2.tick_params(left=False, top=False, bottom=False)
@@ -321,6 +326,7 @@ with tab2:
     ax2.set_xticklabels(clean_headers, rotation=0, ha='center', fontsize=10, fontweight='bold', color='#333333')
     ax2.set_yticklabels(df_heat.index, rotation=0, fontsize=10.5, fontweight='500', color='#333333')
 
+    # 4. Add the Intervention Opportunity Flags
     flags = [(6, 2), (2, 0), (6, 3), (11, 2), (8, 2), (4, 3)]
     for (y, x) in flags:
         ax2.plot(x + 0.85, y + 0.15, marker='o', markersize=8, color='#E63946', markeredgecolor='white')
@@ -329,8 +335,8 @@ with tab2:
     st.pyplot(fig2)
     
 with tab3:
-    st.markdown("<p style='font-size: 16px; font-weight: 700; color: #111111;'>Strategic Arbitrage & Capital Deployment Playbooks</p>", unsafe_allow_index=True)
-    st.markdown("<p style='font-size: 13.5px; color: #555555;'>Cross-referencing legal mandates against structural funding pipelines isolates three key intervention vectors. Philanthropic grants should bypass standard regulatory lobbying and align with these operational levers.</p>", unsafe_allow_index=True)
+    st.markdown("<p style='font-size: 16px; font-weight: 700; color: #111111;'>Strategic Arbitrage & Capital Deployment Playbooks</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 13.5px; color: #555555;'>Cross-referencing legal mandates against structural funding pipelines isolates three key intervention vectors. Philanthropic grants should bypass standard regulatory lobbying and align with these operational levers.</p>", unsafe_allow_html=True)
     st.divider()
 
     # ─── PLAYBOOK 1 ──────────────────────────────────────────────────────────
@@ -338,10 +344,10 @@ with tab3:
         <div class='strategy-card'>
             <div class='badge-do'>RECOMMENDED STRATEGY</div>
             <p style='font-size: 15px; font-weight: 700; color: #002B49; margin-top:5px; margin-bottom:5px;'>1. Force SME Algorithmic Transparency via National Labor Contracts</p>
-            <p style='font-size: 13.5px; color: #333333;'><b>The Vulnerability:</b> While SME Networks (PMI) maintain non-existent transparency and sandbox scores (0.1), Italy's business infrastructure relies natively on high-trust informal local relationships, heavily resisting top-down regulatory reporting dictates from Rome.</p>
+            <p style='font-size: 13.5px; color: #333333;'><b>The Vulnerability:</b> While SME Networks (PMI) maintain non-existent transparency and sandbox scores (0.1), Italy's business infrastructure relies natively on high-trust informal local networks, heavily resisting top-down regulatory reporting dictates from Rome.</p>
             <p style='font-size: 13.5px; color: #333333;'><b>The Execution Vector:</b> Do not build open-source transparency toolkits for business entities. Instead, deploy grants to partner with major <b>Trade Unions (CGIL/CISL/UIL)</b>. Unions hold a robust 2.4 capacity on System Transparency. By writing algorithmic explainability mandates directly into National Collective Labor Agreements (CCNL), non-profits force legally binding operational compliance via established worker rights, entirely bypassing corporate friction.</p>
         </div>
-    """, unsafe_allow_index=True)
+    """, unsafe_allow_html=True)
 
     # ─── PLAYBOOK 2 ──────────────────────────────────────────────────────────
     st.markdown("""
@@ -351,7 +357,7 @@ with tab3:
             <p style='font-size: 13.5px; color: #333333;'><b>The Vulnerability:</b> Cassa Depositi e Prestiti (CDP) commands maximum capital deployment leverage (3.0) but runs a near-zero internal AI risk auditing capability (0.1). Italy's promotional banking tradition prioritizes macroeconomic transition speed over risk oversight, creating an unmonitored capital pipeline.</p>
             <p style='font-size: 13.5px; color: #333333;'><b>The Execution Vector:</b> Do not lobby the national data protection authority to curb financial lines. Instead, launch a capital-conditionality campaign targeting <b>CDP Venture Capital</b>. Because they maintain an active 2.1 footprint in SME Innovation Sandboxes, philanthropists can design and lobby for mandatory 'AI Safety Due Diligence' criteria, embedding compliance parameters directly into the deployment terms of deep-tech venture funds.</p>
         </div>
-    """, unsafe_allow_index=True)
+    """, unsafe_allow_html=True)
 
     # ─── PLAYBOOK 3 ──────────────────────────────────────────────────────────
     st.markdown("""
@@ -361,4 +367,4 @@ with tab3:
             <p style='font-size: 13.5px; color: #333333;'><b>The Structural Trap:</b> Italy's constitutional architecture creates a deep disconnect: central regulators in Rome (Garante, AgID) possess broad statutory oversight mandates but lack operational budget lines, while wealthy northern regions (Lombardy Region, scoring 3.0 on sandboxes) hold cash reserves but operate completely untethered from centralized safety frameworks.</p>
             <p style='font-size: 13.5px; color: #333333;'><b>The Execution Vector:</b> Do not advocate for centralized registries or unified federal mandates; these initiatives trigger constitutional gridlock and are functionally ignored. Instead, use capital to place civil society technologists as 'transparency embeds' inside active regional sandbox hubs, validating Rome's standards through regional execution power.</p>
         </div>
-    """, unsafe_allow_index=True)
+    """, unsafe_allow_html=True)
