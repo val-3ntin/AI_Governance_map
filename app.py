@@ -1,94 +1,272 @@
 import streamlit as st
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from matplotlib.colors import LinearSegmentedColormap
 
-# ─── PAGE CONFIGURATION & CORPORATE THEME ──────────────────────────────────────
-st.set_page_config(page_title="AI Governance Strategic Engine | Italy", layout="wide")
+# ─── PAGE CONFIG ────────────────────────────────────────────────────────────
+st.set_page_config(
+    page_title="Italy AI Governance Intelligence",
+    page_icon="🇮🇹",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-# Custom CSS for an ultra-clean corporate presentation style
+# ─── GLOBAL CSS ─────────────────────────────────────────────────────────────
 st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
-        color: #1A1A1A;
-    }
-    .stApp {
-        background-color: #FFFFFF;
-    }
-    /* Executive KPI Cards */
-    .kpi-card {
-        background-color: #F8F9FA;
-        border-left: 5px solid #002B49;
-        padding: 20px;
-        border-radius: 4px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        margin-bottom: 10px;
-    }
-    .kpi-card.alert {
-        border-left: 5px solid #E63946;
-    }
-    .kpi-title {
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: #5A6A85;
-        font-weight: 600;
-        margin-bottom: 8px;
-    }
-    .kpi-value {
-        font-size: 24px;
-        font-weight: 700;
-        color: #002B49;
-    }
-    .kpi-value.alert {
-        color: #E63946;
-    }
-    .kpi-subtitle {
-        font-size: 12px;
-        color: #7A8B9E;
-        margin-top: 4px;
-    }
-    /* Strategy Matrix Cards */
-    .strategy-card {
-        background-color: #FFFFFF;
-        border: 1px solid #E2E8F0;
-        border-radius: 6px;
-        padding: 24px;
-        margin-bottom: 20px;
-    }
-    .badge-do {
-        background-color: #EBFFFA;
-        color: #00A389;
-        padding: 4px 12px;
-        border-radius: 4px;
-        font-weight: 700;
-        font-size: 12px;
-        display: inline-block;
-        margin-bottom: 10px;
-    }
-    .badge-not {
-        background-color: #FFEBEB;
-        color: #E63946;
-        padding: 4px 12px;
-        border-radius: 4px;
-        font-weight: 700;
-        font-size: 12px;
-        display: inline-block;
-        margin-bottom: 10px;
-    }
-    </style>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+/* ── Reset & base ── */
+html, body, [class*="css"] {
+    font-family: 'Sora', system-ui, sans-serif;
+    color: #0D1B2A;
+    background-color: #F7F8FA;
+}
+.stApp { background-color: #F7F8FA; }
+.block-container { padding: 0 2rem 3rem 2rem; max-width: 1400px; }
+
+/* ── Sidebar ── */
+section[data-testid="stSidebar"] {
+    background-color: #0D1B2A;
+    border-right: 1px solid #1E3048;
+}
+section[data-testid="stSidebar"] * { color: #C8D8E8 !important; }
+section[data-testid="stSidebar"] .stSelectbox label,
+section[data-testid="stSidebar"] .stSlider label { color: #7A99B8 !important; font-size: 11px !important; letter-spacing: .08em; text-transform: uppercase; }
+section[data-testid="stSidebar"] .stSelectbox div[data-baseweb] { background: #152235 !important; border-color: #2E4A66 !important; }
+section[data-testid="stSidebar"] p { color: #7A99B8 !important; font-size: 12px !important; }
+
+/* ── Nav tabs ── */
+.stTabs [data-baseweb="tab-list"] {
+    background: transparent;
+    border-bottom: 1.5px solid #DDE2EA;
+    gap: 0;
+    padding: 0;
+}
+.stTabs [data-baseweb="tab"] {
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: #7A8EA6;
+    padding: 10px 20px;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    margin-bottom: -1.5px;
+}
+.stTabs [aria-selected="true"] {
+    color: #0D1B2A !important;
+    border-bottom: 2px solid #0072CE !important;
+    background: transparent !important;
+}
+
+/* ── Metric tiles ── */
+.metric-tile {
+    background: #FFFFFF;
+    border: 1px solid #DDE2EA;
+    border-top: 3px solid #0072CE;
+    padding: 18px 20px 16px;
+    border-radius: 2px;
+}
+.metric-tile.alert { border-top-color: #E63946; }
+.metric-tile.amber { border-top-color: #F5A623; }
+.metric-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #7A8EA6;
+    margin-bottom: 6px;
+    font-family: 'DM Mono', monospace;
+}
+.metric-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0D1B2A;
+    line-height: 1.1;
+    font-family: 'DM Mono', monospace;
+}
+.metric-value.alert { color: #E63946; }
+.metric-sub {
+    font-size: 11px;
+    color: #9BAABF;
+    margin-top: 4px;
+}
+
+/* ── Strategy cards ── */
+.s-card {
+    background: #FFFFFF;
+    border: 1px solid #DDE2EA;
+    border-left: 3px solid #0072CE;
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    border-radius: 2px;
+}
+.s-card.red { border-left-color: #E63946; }
+.s-card.amber { border-left-color: #F5A623; }
+.badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 2px;
+    margin-bottom: 10px;
+}
+.badge.go   { background: #E8F4FD; color: #0072CE; }
+.badge.stop { background: #FDECEE; color: #E63946; }
+.badge.caution { background: #FEF6E8; color: #C4830A; }
+
+/* ── Section header rule ── */
+.section-rule {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 28px 0 18px;
+}
+.section-rule .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: #7A8EA6;
+    white-space: nowrap;
+}
+.section-rule .line {
+    flex: 1;
+    height: 1px;
+    background: #DDE2EA;
+}
+
+/* ── Actor pin legend ── */
+.pin-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 12px;
+}
+.pin-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #4A5E75;
+}
+.pin-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ── Landing hero ── */
+.hero-wrap {
+    background: #0D1B2A;
+    margin: -16px -32px 0;
+    padding: 48px 40px 40px;
+    border-bottom: 1px solid #1E3048;
+}
+.hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: #0072CE;
+    margin-bottom: 12px;
+}
+.hero-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #F7F8FA;
+    line-height: 1.15;
+    max-width: 700px;
+    margin-bottom: 14px;
+}
+.hero-title span { color: #0072CE; }
+.hero-body {
+    font-size: 14px;
+    color: #7A99B8;
+    max-width: 580px;
+    line-height: 1.7;
+    margin-bottom: 28px;
+}
+.hero-stat-row { display: flex; gap: 32px; flex-wrap: wrap; }
+.hero-stat { }
+.hero-stat-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px;
+    font-weight: 500;
+    color: #F7F8FA;
+    line-height: 1;
+}
+.hero-stat-lbl {
+    font-size: 11px;
+    color: #4A6680;
+    margin-top: 3px;
+    letter-spacing: .04em;
+}
+
+/* ── Table ── */
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.styled-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #7A8EA6;
+    border-bottom: 1.5px solid #DDE2EA;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 500;
+}
+.styled-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #F0F2F6;
+    color: #2C3E50;
+    vertical-align: top;
+    line-height: 1.5;
+}
+.styled-table tr:hover td { background: #F7F8FA; }
+.pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .04em;
+}
+.pill.high   { background: #E8F4FD; color: #0060B0; }
+.pill.medium { background: #FEF6E8; color: #C4830A; }
+.pill.low    { background: #FDECEE; color: #C0303B; }
+
+/* ── Info callout ── */
+.callout {
+    background: #EEF6FF;
+    border-left: 3px solid #0072CE;
+    padding: 12px 16px;
+    font-size: 12.5px;
+    color: #1A3A5C;
+    border-radius: 0 2px 2px 0;
+    margin-top: 12px;
+    line-height: 1.6;
+}
+</style>
 """, unsafe_allow_html=True)
 
-# ─── HEADER ──────────────────────────────────────────────────────────────────
-st.markdown("<p style='color: #002B49; font-size: 28px; font-weight: 700; margin-bottom: 5px;'>Italy AI Governance: Strategic Decision Engine</p>", unsafe_allow_html=True)
-st.markdown("<p style='color: #555555; font-size: 14px; margin-bottom: 25px;'>Stress-testing public administration adoption, regulatory latency, and institutional structural drivers under the 2024-2026 National Strategy.</p>", unsafe_allow_html=True)
 
-# ─── DATA SETUP ──────────────────────────────────────────────────────────────
+# ─── DATA SETUP ─────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
     weights = {
@@ -97,7 +275,6 @@ def load_data():
         'one_off_position':    0.4,
         'expired_dormant':     0.1,
     }
-
     data = {
         'Garante (DPA)': {
             'Risk_Auditing': {'mandate':1,'activity_type':'ongoing_enforcement','last_year':2025,'reach':1},
@@ -107,9 +284,9 @@ def load_data():
             'Funding_Grants':{'mandate':0,'activity_type':'one_off_position',   'last_year':2023,'reach':0},
         },
         'AgID': {
-            'Risk_Auditing': {'mandate':1,'activity_type':'active_soft','last_year':2024, 'reach':0},
+            'Risk_Auditing': {'mandate':1,'activity_type':'active_soft','last_year':2024,'reach':0},
             'Data_Privacy':  {'mandate':1,'activity_type':'active_soft','last_year':2024,'reach':0},
-            'SME_Sandboxes': {'mandate':0,'activity_type':'active_soft','last_year':2024, 'reach':0},
+            'SME_Sandboxes': {'mandate':0,'activity_type':'active_soft','last_year':2024,'reach':0},
             'Transparency':  {'mandate':1,'activity_type':'active_soft','last_year':2024,'reach':0},
             'Funding_Grants':{'mandate':1,'activity_type':'ongoing_enforcement','last_year':2025,'reach':0},
         },
@@ -184,203 +361,803 @@ def load_data():
             'Funding_Grants':{'mandate':1,'activity_type':'active_soft',    'last_year':2025,'reach':0},
         },
     }
-    return data, weights
+    # Actor metadata: location, group, city, coordinates (for SVG map placement)
+    actor_meta = {
+        'Garante (DPA)':            {'group':'Government',   'city':'Rome',    'cx':295,'cy':455, 'color':'#0072CE'},
+        'AgID':                     {'group':'Government',   'city':'Rome',    'cx':305,'cy':465, 'color':'#0072CE'},
+        'CDP':                      {'group':'Government',   'city':'Rome',    'cx':285,'cy':475, 'color':'#0072CE'},
+        'Corte dei Conti':          {'group':'Government',   'city':'Rome',    'cx':315,'cy':445, 'color':'#0072CE'},
+        'Lombardy Region':          {'group':'Regional',     'city':'Milan',   'cx':175,'cy':175, 'color':'#2ECC71'},
+        'Confindustria Digitale':   {'group':'Industry',     'city':'Rome',    'cx':270,'cy':455, 'color':'#F5A623'},
+        'SME Networks (PMI)':       {'group':'Industry',     'city':'National','cx':230,'cy':330, 'color':'#F5A623'},
+        'CDP Venture Capital':      {'group':'Industry',     'city':'Rome',    'cx':280,'cy':490, 'color':'#F5A623'},
+        'Altroconsumo':             {'group':'Civil Society','city':'Milan',   'cx':185,'cy':185, 'color':'#E63946'},
+        'Trade Unions (CGIL/CISL/UIL)':{'group':'Civil Society','city':'Rome','cx':260,'cy':468, 'color':'#E63946'},
+        'AIxIA':                    {'group':'Academia',     'city':'Turin',   'cx':130,'cy':200, 'color':'#9B59B6'},
+        'Fondazione Leonardo':      {'group':'Academia',     'city':'Rome',    'cx':300,'cy':480, 'color':'#9B59B6'},
+    }
+    return data, weights, actor_meta
 
-structured_data, ACTIVITY_WEIGHTS = load_data()
+structured_data, ACTIVITY_WEIGHTS, ACTOR_META = load_data()
 pillars = ['Risk_Auditing', 'Data_Privacy', 'SME_Sandboxes', 'Transparency', 'Funding_Grants']
+pillar_labels = {
+    'Risk_Auditing': 'Risk Auditing',
+    'Data_Privacy': 'Data Privacy',
+    'SME_Sandboxes': 'SME Sandboxes',
+    'Transparency': 'Transparency',
+    'Funding_Grants': 'Funding & Grants',
+}
 actors = list(structured_data.keys())
 
-# ─── SIDEBAR DESIGN ─────────────────────────────────────────────────────────
+GROUP_COLORS = {
+    'Government':   '#0072CE',
+    'Regional':     '#2ECC71',
+    'Industry':     '#F5A623',
+    'Civil Society':'#E63946',
+    'Academia':     '#9B59B6',
+}
+
+# ─── SIDEBAR ────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("<p style='font-size: 18px; font-weight: 700; color: #002B49; margin-bottom: 5px;'>Simulation Controls</p>", unsafe_allow_html=True)
-    st.markdown("Modify baseline structural constraints to stress-test ecosystem metrics.")
-    st.divider()
-    
-    selected_pillar = st.selectbox("Strategic Metric", options=pillars, format_func=lambda x: x.replace('_', ' '))
-    sim_year = st.slider("Simulation Horizon", min_value=2023, max_value=2030, value=2026, step=1)
-    decay_base = st.slider("Dormancy Decay Factor", min_value=0.50, max_value=1.00, value=0.88, step=0.01, 
-                           help="Calculates policy obsolescence. At 0.88, static portfolios lose ~12% structural efficiency annually if enforcement stays dormant.")
-
-# ─── COMPUTE ENGINE ──────────────────────────────────────────────────────────
-simulated_scores = {}
-for actor in actors:
-    cell = structured_data[actor][selected_pillar]
-    activity_w = ACTIVITY_WEIGHTS[cell['activity_type']]
-    reach_bonus = 1 + cell['reach']
-    raw = cell['mandate'] + activity_w * reach_bonus
-    years_stale = max(0, sim_year - cell['last_year'])
-    score = min(3.0, round(raw * (decay_base ** years_stale), 2))
-    simulated_scores[actor] = score
-
-s_series = pd.Series(simulated_scores).sort_values(ascending=True)
-
-# ─── EXECUTIVE KPI CARD CONTAINER ────────────────────────────────────────────
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.markdown(f"""
-        <div class='kpi-card'>
-            <div class='kpi-title'>Avg Portfolio Readiness</div>
-            <div class='kpi-value'>{s_series.mean():.2f} / 3.00</div>
-            <div class='kpi-subtitle'>Simulated global system mean</div>
-        </div>
-    """, unsafe_allow_html=True)
-with col2:
-    st.markdown(f"""
-        <div class='kpi-card alert'>
-            <div class='kpi-title'>Maximum Systemic Risk</div>
-            <div class='kpi-value alert'>{s_series.index[0]}</div>
-            <div class='kpi-subtitle'>Lowest metric output capacity</div>
-        </div>
-    """, unsafe_allow_html=True)
-with col3:
-    st.markdown(f"""
-        <div class='kpi-card'>
-            <div class='kpi-title'>Ecosystem Anchor Partner</div>
-            <div class='kpi-value'>{s_series.index[-1]}</div>
-            <div class='kpi-subtitle'>Highest functional capacity cell</div>
-        </div>
+    st.markdown("""
+    <div style='padding: 20px 0 10px;'>
+        <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#0072CE;margin-bottom:6px;'>Intelligence Engine</div>
+        <div style='font-size:16px;font-weight:700;color:#F7F8FA;line-height:1.3;margin-bottom:4px;'>Italy AI Governance</div>
+        <div style='font-size:11px;color:#4A6680;margin-bottom:20px;'>2024–2026 National Strategy</div>
+    </div>
     """, unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<div style='height:1px;background:#1E3048;margin-bottom:20px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#4A6680;text-transform:uppercase;margin-bottom:12px;'>Simulation Controls</div>", unsafe_allow_html=True)
 
-# ─── ANALYTICAL WORKSPACES ───────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["📊 Capacity Delta Profile", "🏁 Matrix Analytics", "♟️ Strategic Playbooks"])
-
-with tab1:
-    clean_pillar_name = selected_pillar.replace('_', ' ')
-    
-    # ─── PREMIUM SOFT DARK THEME ───────────────────────────────────────────
-    bg_color = '#1E293B'           # Deep Slate/Navy (Much softer than pure black)
-    text_primary = '#F8FAFC'       # Crisp Off-White for main titles
-    text_secondary = '#CBD5E1'     # Lighter, highly readable silver/grey for subtitles
-    bar_normal = '#38BDF8'         # Bright Sky Blue (Elegant and luminous)
-    bar_alert = '#FB7185'          # Soft Rose/Coral for the vulnerability alert
-    
-    # Render Matplotlib Figure
-    plt.rcParams['font.sans-serif'] = ['Arial', 'Helvetica', 'DejaVu Sans']
-    fig, ax = plt.subplots(figsize=(10, 6.5), facecolor=bg_color)
-    ax.set_facecolor(bg_color)
-
-    # Assign colors: Red for the lowest score, Blue for the rest
-    colors = [bar_alert if i == 0 else bar_normal for i in range(len(s_series))]
-    bars = ax.barh(s_series.index, s_series.values, color=colors, height=0.55)
-
-    # Direct Labeling on the bars
-    for bar, val in zip(bars, s_series.values):
-        ax.text(val + 0.04, bar.get_y() + bar.get_height() / 2, 
-                f'{val:.2f}', va='center', fontweight='bold', 
-                color=bar.get_facecolor(), fontsize=10.5)
-        
-    ax.set_xlim(0, 3.4)
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['bottom'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.tick_params(axis='both', length=0)
-    ax.set_xticks([])
-    
-    # Set y-axis labels to the readable silver
-    ax.set_yticklabels(s_series.index, fontsize=10.5, fontweight='500', color=text_secondary)
-
-    # Add insight titles with excellent contrast
-    fig.text(0.02, 0.94, f"Structural Decay Simulation: {clean_pillar_name}", 
-             fontsize=15, fontweight='bold', color=text_primary)
-    fig.text(0.02, 0.88, f"Simulated systemic capacity in {sim_year} accounting for historical performance stagnation.", 
-             fontsize=11, color=text_secondary)
-
-    # THE FIX: Restrict tight_layout to the bottom 85% of the figure so titles don't overlap
-    plt.tight_layout(rect=[0, 0, 1, 0.85])
-    st.pyplot(fig)
-    
-    st.info("**Strategic Insight:** Notice how 'On-Paper' mandates from 2021/2022 quickly drag an actor to the bottom of the rankings if no active enforcement has occurred recently.")
-
-
-with tab2:
-    st.markdown("<p style='font-size: 16px; font-weight: 700; color: #111111;'>Dynamic Matrix Cross-Reference</p>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size: 13px; color: #555555;'>This system architecture matrix updates dynamically as simulation parameters shift. Red indicators represent prioritized non-profit intervention fields.</p>", unsafe_allow_html=True)
-    
-    # 1. Calculate the full matrix dynamically based on current slider values
-    heatmap_data = []
-    for actor in actors:
-        actor_scores = {}
-        for p in pillars:
-            cell = structured_data[actor][p]
-            raw = cell['mandate'] + ACTIVITY_WEIGHTS[cell['activity_type']] * (1 + cell['reach'])
-            years_stale = max(0, sim_year - cell['last_year'])
-            actor_scores[p] = min(3.0, round(raw * (decay_base ** years_stale), 2))
-        heatmap_data.append(actor_scores)
-        
-    df_heat = pd.DataFrame(heatmap_data, index=actors)
-
-    # 2. Draw the McKinsey-style professional Heatmap
-    fig2, ax2 = plt.subplots(figsize=(11, 6.5), facecolor='#FFFFFF')
-    ax2.set_facecolor('#FFFFFF')
-    
-    prof_cmap = LinearSegmentedColormap.from_list(
-        'corporate_blue', ['#F8F9FA', '#B9D1EA', '#5A88B5', '#0C2C52'], N=256
+    selected_pillar = st.selectbox(
+        "STRATEGIC METRIC",
+        options=pillars,
+        format_func=lambda x: pillar_labels[x]
     )
+    sim_year = st.slider("SIMULATION HORIZON", min_value=2023, max_value=2030, value=2026, step=1)
+    decay_base = st.slider(
+        "DORMANCY DECAY FACTOR", min_value=0.50, max_value=1.00, value=0.88, step=0.01,
+        help="Policy obsolescence rate. At 0.88, dormant portfolios lose ~12% structural efficiency annually."
+    )
+
+    selected_group = st.multiselect(
+        "FILTER BY ACTOR GROUP",
+        options=list(GROUP_COLORS.keys()),
+        default=list(GROUP_COLORS.keys()),
+    )
+
+    st.markdown("<div style='height:1px;background:#1E3048;margin:20px 0 16px;'></div>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style='font-size:11px;color:#4A6680;line-height:1.7;'>
+    Scores combine statutory mandate, activity recency, and geographic reach. 
+    Decay factor simulates institutional stagnation over time.
+    </div>
+    """, unsafe_allow_html=True)
+
+# ─── COMPUTE ENGINE ─────────────────────────────────────────────────────────
+def compute_scores(pillar, year, decay):
+    scores = {}
+    for actor in actors:
+        cell = structured_data[actor][pillar]
+        activity_w = ACTIVITY_WEIGHTS[cell['activity_type']]
+        reach_bonus = 1 + cell['reach']
+        raw = cell['mandate'] + activity_w * reach_bonus
+        years_stale = max(0, year - cell['last_year'])
+        scores[actor] = min(3.0, round(raw * (decay ** years_stale), 2))
+    return scores
+
+simulated_scores = compute_scores(selected_pillar, sim_year, decay_base)
+filtered_actors = [a for a in actors if ACTOR_META[a]['group'] in selected_group]
+s_series = pd.Series({a: simulated_scores[a] for a in filtered_actors}).sort_values(ascending=True)
+
+full_heatmap_data = []
+for actor in actors:
+    row = {}
+    for p in pillars:
+        cell = structured_data[actor][p]
+        raw = cell['mandate'] + ACTIVITY_WEIGHTS[cell['activity_type']] * (1 + cell['reach'])
+        years_stale = max(0, sim_year - cell['last_year'])
+        row[p] = min(3.0, round(raw * (decay_base ** years_stale), 2))
+    full_heatmap_data.append(row)
+df_heat = pd.DataFrame(full_heatmap_data, index=actors)
+
+# ─── PAGES ──────────────────────────────────────────────────────────────────
+page = st.sidebar.radio(
+    "NAVIGATION",
+    ["Briefing", "Stakeholder Map", "Capacity Matrix", "Decay Simulation", "Playbooks"],
+    label_visibility="collapsed"
+)
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PAGE 0 · BRIEFING (landing)
+# ═══════════════════════════════════════════════════════════════════════════
+if page == "Briefing":
+    st.markdown("""
+    <div class='hero-wrap'>
+        <div class='hero-eyebrow'>Strategic Intelligence Report · Italy · AI Governance · 2024–2026</div>
+        <div class='hero-title'>Where does <span>real</span> AI<br>governance power sit<br>in Italy?</div>
+        <div class='hero-body'>
+            This engine maps 12 institutional actors against 5 EU AI Act pillars,
+            quantifies their structural decay over time, and surfaces the
+            three highest-leverage intervention vectors for non-profit capital deployment.
+        </div>
+        <div class='hero-stat-row'>
+            <div class='hero-stat'>
+                <div class='hero-stat-num'>12</div>
+                <div class='hero-stat-lbl'>Actors mapped</div>
+            </div>
+            <div class='hero-stat'>
+                <div class='hero-stat-num'>5</div>
+                <div class='hero-stat-lbl'>Governance pillars</div>
+            </div>
+            <div class='hero-stat'>
+                <div class='hero-stat-num'>€44B</div>
+                <div class='hero-stat-lbl'>PNRR tracked</div>
+            </div>
+            <div class='hero-stat'>
+                <div class='hero-stat-num'>3</div>
+                <div class='hero-stat-lbl'>Intervention vectors</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Context
+    st.markdown("""
+    <div class='section-rule'>
+        <span class='label'>Country Context</span><div class='line'></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    c1, c2 = st.columns([3, 2], gap="large")
+    with c1:
+        st.markdown("""
+        <div style='font-size:14px;color:#2C3E50;line-height:1.85;'>
+        Italy's AI governance landscape is structurally fragmented: enforcement authority is concentrated at the centre
+        (Garante, Rome), while the industrial economy is dominated by SMEs that lack the compliance resources to engage
+        with EU AI Act requirements. The PNRR injects €44B+ into digital transformation, but disbursement bodies operate
+        with near-zero internal AI risk frameworks.
+        <br><br>
+        This creates three compounding gaps: <strong>regulatory-industrial distance</strong> (enforcement designed for large enterprises),
+        <strong>Rome–region asymmetry</strong> (wealthy northern regions hold sandbox budgets untethered from national safety standards),
+        and <strong>capital without conditionality</strong> (CDP deploys €30B+ with no AI safety due diligence requirements).
+        </div>
+        """, unsafe_allow_html=True)
+
+    with c2:
+        # Key facts as clean tiles
+        facts = [
+            ("99%", "of Italian businesses are SMEs (PMI)", "normal"),
+            ("€13.4B", "available via Transizione 4.0 for SME digitisation", "normal"),
+            ("0", "formal AI risk checkpoints in CDP investment criteria", "alert"),
+            ("2023", "Italy became 1st EU country to ban an AI product (ChatGPT)", "normal"),
+        ]
+        for val, lbl, style in facts:
+            color = "#E63946" if style == "alert" else "#0D1B2A"
+            st.markdown(f"""
+            <div style='background:#FFFFFF;border:1px solid #DDE2EA;border-radius:2px;
+                        padding:14px 16px;margin-bottom:10px;'>
+                <div style='font-family:DM Mono,monospace;font-size:22px;font-weight:500;color:{color};'>{val}</div>
+                <div style='font-size:12px;color:#7A8EA6;margin-top:3px;'>{lbl}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # Pillar overview table
+    st.markdown("""
+    <div class='section-rule'>
+        <span class='label'>Governance Pillars</span><div class='line'></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    pillar_info = [
+        ("Risk Categorisation & Auditing", "EU AI Act Articles 6–51. Classification of AI systems by risk level and mandatory conformity assessment.", "High", "Garante, AgID, Corte dei Conti"),
+        ("Data Privacy & Copyright", "GDPR enforcement + AI Act data governance provisions. Italy most active EU enforcer of AI/GDPR intersection.", "High", "Garante (dominant), Altroconsumo"),
+        ("SME Innovation Sandboxes", "Art. 57 EU AI Act mandates member-state sandboxes. Italy has stated intent but zero funded operational implementation.", "Low", "Lombardy Region (de facto)"),
+        ("System Transparency", "Art. 13–14 AI Act. Explainability obligations. Strong in theory; no audit tooling for Italian PMIs exists.", "Medium", "Trade Unions, Altroconsumo"),
+        ("Funding & Grants", "PNRR M1C2 (€13.4B), M4C1 (€11.4B), M4C2 (€11.8B), CDP Venture (€500M). Access routes fragmented.", "High", "CDP, AgID, CDP Venture Capital"),
+    ]
+
+    html_rows = ""
+    for name, desc, level, lead in pillar_info:
+        pill_class = "high" if level == "High" else "medium" if level == "Medium" else "low"
+        html_rows += f"""
+        <tr>
+            <td><strong>{name}</strong></td>
+            <td>{desc}</td>
+            <td><span class='pill {pill_class}'>{level}</span></td>
+            <td style='font-size:11px;color:#0072CE;'>{lead}</td>
+        </tr>"""
+
+    st.markdown(f"""
+    <table class='styled-table'>
+        <thead><tr>
+            <th style='width:20%'>Pillar</th>
+            <th>Description</th>
+            <th style='width:8%'>Activity</th>
+            <th style='width:22%'>Lead Actor(s)</th>
+        </tr></thead>
+        <tbody>{html_rows}</tbody>
+    </table>
+    """, unsafe_allow_html=True)
+
+    # Critical gaps
+    st.markdown("""
+    <div class='section-rule'>
+        <span class='label'>Critical Governance Gaps</span><div class='line'></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    gaps = [
+        ("G1", "#E63946", "SME Compliance Void",
+         "Italy's 4.4M SMEs are the primary EU AI Act subjects but have no funded compliance support. "
+         "Garante's enforcement posture (modelled on GDPR for large entities) creates regulatory exposure "
+         "without practical pathways. The Transizione 4.0 tax credit funds AI adoption but includes no "
+         "safety requirement — building AI risk in SMEs with zero AI governance."),
+        ("G2", "#F5A623", "Capital Without Conditionality",
+         "CDP controls €30B+ in deployment-stage capital (PNRR + Venture) with zero internal AI risk "
+         "framework. Unlike the EIB (which has integrated AI ethics criteria since 2021), CDP applies "
+         "no safety due diligence to AI investments. This is Italy's largest unmonitored AI pipeline."),
+        ("G3", "#9B59B6", "Rome–Region Sandbox Disconnect",
+         "Lombardy Region has the budget and political will to run AI sandboxes (highest score: 3.0), "
+         "but operates entirely outside national safety frameworks set by Garante/AgID. Northern "
+         "industrial AI pilots have no compliance bridge back to Rome's regulatory standards."),
+    ]
+
+    gcols = st.columns(3, gap="medium")
+    for i, (code, color, title, body) in enumerate(gaps):
+        with gcols[i]:
+            st.markdown(f"""
+            <div style='background:#FFFFFF;border:1px solid #DDE2EA;border-top:3px solid {color};
+                        border-radius:2px;padding:20px;height:100%;'>
+                <div style='font-family:DM Mono,monospace;font-size:10px;color:{color};
+                            letter-spacing:.12em;margin-bottom:8px;'>{code} · GAP</div>
+                <div style='font-size:14px;font-weight:700;color:#0D1B2A;margin-bottom:10px;'>{title}</div>
+                <div style='font-size:12px;color:#4A5E75;line-height:1.7;'>{body}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PAGE 1 · STAKEHOLDER MAP
+# ═══════════════════════════════════════════════════════════════════════════
+elif page == "Stakeholder Map":
+    st.markdown("""
+    <div style='padding:24px 0 8px;'>
+        <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#7A8EA6;
+                    text-transform:uppercase;margin-bottom:6px;'>Geospatial Intelligence</div>
+        <div style='font-size:22px;font-weight:700;color:#0D1B2A;margin-bottom:4px;'>Italian AI Actor Map</div>
+        <div style='font-size:13px;color:#7A8EA6;'>Institutional geography of the AI governance ecosystem. 
+        Power is concentrated in Rome; innovation capital clusters in the North.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    map_col, info_col = st.columns([3, 2], gap="large")
+
+    with map_col:
+        # Italy SVG map with actor pins
+        # Build dynamic pins from metadata
+        actor_pins_svg = ""
+        pin_labels_svg = ""
+        
+        selected_actor_for_map = st.selectbox(
+            "Highlight actor",
+            options=["All"] + actors,
+            index=0,
+            label_visibility="collapsed"
+        )
+
+        for actor, meta in ACTOR_META.items():
+            if meta['group'] not in selected_group:
+                continue
+            score = simulated_scores[actor]
+            color = meta['color']
+            cx, cy = meta['cx'], meta['cy']
+            r = 6 + score * 2.5  # radius scales with score
+            opacity = 1.0 if (selected_actor_for_map == "All" or selected_actor_for_map == actor) else 0.2
+            stroke = "#0D1B2A" if selected_actor_for_map == actor else "white"
+            sw = 2.5 if selected_actor_for_map == actor else 1.5
+            actor_pins_svg += f"""
+            <circle cx="{cx}" cy="{cy}" r="{r}" fill="{color}" 
+                    fill-opacity="{opacity}" stroke="{stroke}" stroke-width="{sw}"/>
+            """
+            # Score label
+            if selected_actor_for_map == actor or selected_actor_for_map == "All":
+                actor_pins_svg += f"""
+                <text x="{cx}" y="{cy+0.4}" text-anchor="middle" dominant-baseline="middle"
+                      font-family="DM Mono, monospace" font-size="6" fill="white" font-weight="500">
+                    {score:.1f}
+                </text>"""
+
+        italy_svg = f"""
+        <svg viewBox="0 0 500 750" xmlns="http://www.w3.org/2000/svg"
+             style="width:100%;max-width:420px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.08));">
+          <defs>
+            <linearGradient id="seaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#EEF6FF;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#D6E8F8;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          
+          <!-- Sea background -->
+          <rect width="500" height="750" fill="url(#seaGrad)" rx="4"/>
+          
+          <!-- Italy mainland — simplified path -->
+          <path d="
+            M 155 80  L 170 75  L 195 78  L 220 85  L 245 88
+            L 270 82  L 295 78  L 320 88  L 340 102 L 348 118
+            L 342 130 L 328 138 L 318 150 L 310 168 L 308 188
+            L 320 205 L 338 215 L 350 228 L 358 248 L 360 265
+            L 355 280 L 342 292 L 335 308 L 338 328 L 348 342
+            L 352 355 L 348 368 L 338 378 L 322 388 L 310 402
+            L 305 418 L 310 432 L 320 445 L 328 460 L 325 478
+            L 315 492 L 305 510 L 298 528 L 305 545 L 318 558
+            L 322 572 L 315 582 L 302 578 L 290 568 L 278 558
+            L 268 545 L 260 530 L 255 515 L 248 500 L 238 488
+            L 225 480 L 215 470 L 210 455 L 215 440 L 222 428
+            L 228 415 L 225 400 L 215 388 L 205 375 L 198 360
+            L 192 345 L 188 330 L 182 315 L 175 300 L 168 285
+            L 162 268 L 158 252 L 155 235 L 152 218 L 150 200
+            L 148 182 L 146 165 L 146 148 L 148 132 L 152 115
+            L 155 98  L 155 80
+          " fill="#D4E4C8" stroke="#B8D0A8" stroke-width="1.5"/>
+          
+          <!-- Sicily -->
+          <path d="
+            M 182 620 L 195 610 L 215 605 L 238 608 L 258 618
+            L 272 630 L 278 648 L 270 660 L 255 668 L 238 672
+            L 218 670 L 200 660 L 188 648 L 182 635 L 182 620
+          " fill="#D4E4C8" stroke="#B8D0A8" stroke-width="1.5"/>
+          
+          <!-- Sardinia -->
+          <path d="
+            M 58 330 L 70 318 L 82 315 L 94 320 L 102 335
+            L 105 355 L 102 375 L 95 392 L 82 402 L 68 405
+            L 56 398 L 48 382 L 46 362 L 50 345 L 58 330
+          " fill="#D4E4C8" stroke="#B8D0A8" stroke-width="1.5"/>
+          
+          <!-- City labels -->
+          <text x="168" y="168" font-family="DM Mono,monospace" font-size="9" fill="#4A5E75" font-weight="500">MILAN</text>
+          <text x="122" y="193" font-family="DM Mono,monospace" font-size="9" fill="#4A5E75" font-weight="500">TURIN</text>
+          <text x="280" y="446" font-family="DM Mono,monospace" font-size="9" fill="#4A5E75" font-weight="500">ROME</text>
+          <text x="330" y="590" font-family="DM Mono,monospace" font-size="9" fill="#4A5E75" font-weight="500">NAPLES</text>
+
+          <!-- City dots -->
+          <circle cx="178" cy="175" r="3" fill="#9BAABF"/>
+          <circle cx="130" cy="200" r="3" fill="#9BAABF"/>
+          <circle cx="290" cy="460" r="3" fill="#9BAABF"/>
+          <circle cx="318" cy="578" r="3" fill="#9BAABF"/>
+
+          <!-- Hairline grid / graticule -->
+          <line x1="0" y1="250" x2="500" y2="250" stroke="#C8D8E8" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="0" y1="400" x2="500" y2="400" stroke="#C8D8E8" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="200" y1="0" x2="200" y2="750" stroke="#C8D8E8" stroke-width="0.5" stroke-dasharray="3,4"/>
+          <line x1="350" y1="0" x2="350" y2="750" stroke="#C8D8E8" stroke-width="0.5" stroke-dasharray="3,4"/>
+          
+          <!-- Actor pins -->
+          {actor_pins_svg}
+          
+          <!-- Map attribution -->
+          <text x="8" y="742" font-family="DM Mono,monospace" font-size="7" fill="#9BAABF">
+            Pin radius ∝ score on {pillar_labels[selected_pillar]} · {sim_year}
+          </text>
+        </svg>
+        """
+        st.markdown(italy_svg, unsafe_allow_html=True)
+
+        # Legend
+        legend_html = "<div class='pin-legend'>"
+        for group, color in GROUP_COLORS.items():
+            legend_html += f"""
+            <div class='pin-item'>
+                <div class='pin-dot' style='background:{color}'></div>
+                {group}
+            </div>"""
+        legend_html += "</div>"
+        st.markdown(legend_html, unsafe_allow_html=True)
+
+    with info_col:
+        st.markdown("""
+        <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.12em;
+                    text-transform:uppercase;color:#7A8EA6;margin-bottom:14px;'>Actor Directory</div>
+        """, unsafe_allow_html=True)
+
+        for actor in actors:
+            meta = ACTOR_META[actor]
+            if meta['group'] not in selected_group:
+                continue
+            score = simulated_scores[actor]
+            color = meta['color']
+            bar_w = int((score / 3.0) * 100)
+            st.markdown(f"""
+            <div style='background:#FFFFFF;border:1px solid #DDE2EA;border-radius:2px;
+                        padding:12px 14px;margin-bottom:8px;'>
+                <div style='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;'>
+                    <div>
+                        <div style='font-size:12px;font-weight:600;color:#0D1B2A;'>{actor}</div>
+                        <div style='font-size:10px;color:{color};font-family:DM Mono,monospace;
+                                    letter-spacing:.06em;margin-top:2px;'>{meta["group"]} · {meta["city"]}</div>
+                    </div>
+                    <div style='font-family:DM Mono,monospace;font-size:16px;font-weight:500;
+                                color:#0D1B2A;'>{score:.2f}</div>
+                </div>
+                <div style='height:3px;background:#F0F2F6;border-radius:2px;'>
+                    <div style='height:3px;width:{bar_w}%;background:{color};border-radius:2px;transition:.3s;'></div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PAGE 2 · CAPACITY MATRIX
+# ═══════════════════════════════════════════════════════════════════════════
+elif page == "Capacity Matrix":
+    st.markdown("""
+    <div style='padding:24px 0 16px;'>
+        <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#7A8EA6;
+                    text-transform:uppercase;margin-bottom:6px;'>Full Cross-Reference</div>
+        <div style='font-size:22px;font-weight:700;color:#0D1B2A;'>Dynamic Capacity Matrix</div>
+        <div style='font-size:13px;color:#7A8EA6;margin-top:4px;'>
+            All actors × all pillars. Red dots mark priority non-profit intervention cells.
+            Scores update with sidebar simulation parameters.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    fig2, ax2 = plt.subplots(figsize=(12, 7), facecolor='#FFFFFF')
+    ax2.set_facecolor('#FFFFFF')
+
+    prof_cmap = LinearSegmentedColormap.from_list(
+        'intel_blue', ['#F7F8FA', '#B9D1EA', '#4A88C0', '#0C2C52'], N=256
+    )
+
+    filtered_heat = df_heat.loc[[a for a in actors if ACTOR_META[a]['group'] in selected_group]]
 
     sns.heatmap(
-        df_heat,
-        ax=ax2, 
-        cmap=prof_cmap, 
+        filtered_heat,
+        ax=ax2,
+        cmap=prof_cmap,
         vmin=0, vmax=3,
-        annot=True, 
+        annot=True,
         fmt='.1f',
-        annot_kws={'size': 11, 'weight': 'bold'},
-        linewidths=3,
-        linecolor='white',
-        cbar=False            
+        annot_kws={'size': 11, 'weight': 'bold', 'color': '#0D1B2A'},
+        linewidths=2.5,
+        linecolor='#F7F8FA',
+        cbar_kws={'shrink': 0.6, 'pad': 0.02},
     )
 
-    # 3. Clean up the Axes
     ax2.xaxis.tick_top()
     ax2.xaxis.set_label_position('top')
-    ax2.tick_params(left=False, top=False, bottom=False)
+    ax2.tick_params(left=False, top=False, bottom=False, length=0)
 
-    clean_headers = [p.replace('_', ' ') for p in pillars]
-    ax2.set_xticklabels(clean_headers, rotation=0, ha='center', fontsize=10, fontweight='bold', color='#333333')
-    ax2.set_yticklabels(df_heat.index, rotation=0, fontsize=10.5, fontweight='500', color='#333333')
+    clean_headers = [pillar_labels[p] for p in pillars]
+    ax2.set_xticklabels(clean_headers, rotation=0, ha='center', fontsize=10,
+                         fontweight='600', color='#333333', fontfamily='DejaVu Sans')
+    ax2.set_yticklabels(filtered_heat.index, rotation=0, fontsize=10,
+                         color='#333333', fontfamily='DejaVu Sans')
 
-    # 4. Add the Intervention Opportunity Flags
-    flags = [(6, 2), (2, 0), (6, 3), (11, 2), (8, 2), (4, 3)]
-    for (y, x) in flags:
-        ax2.plot(x + 0.85, y + 0.15, marker='o', markersize=8, color='#E63946', markeredgecolor='white')
+    # Intervention flags
+    flag_actors = ['SME Networks (PMI)', 'CDP', 'Fondazione Leonardo', 'Lombardy Region']
+    flag_pillars = [2, 0, 2, 2]
+    for fa, fp in zip(flag_actors, flag_pillars):
+        if fa in filtered_heat.index:
+            r = list(filtered_heat.index).index(fa)
+            ax2.plot(fp + 0.82, r + 0.18, marker='o', markersize=7,
+                     color='#E63946', markeredgecolor='white', markeredgewidth=1.2, zorder=5)
+
+    cbar = ax2.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=9)
+    cbar.set_ticks([0, 1, 2, 3])
+    cbar.set_ticklabels(['0 — Gap', '1 — Weak', '2 — Moderate', '3 — Strong'])
+
+    plt.tight_layout(pad=1.5)
+    st.pyplot(fig2)
+
+    st.markdown(f"""
+    <div class='callout'>
+        <strong>Reading guide:</strong> Scores combine statutory mandate, activity type weight 
+        (ongoing enforcement = 1.0 → expired = 0.1), and geographic reach, then decayed by 
+        {(1-decay_base)*100:.0f}% per year of inactivity from the simulation horizon ({sim_year}). 
+        Red dots mark cells where non-profit intervention can fill a structural gap with high leverage.
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PAGE 3 · DECAY SIMULATION
+# ═══════════════════════════════════════════════════════════════════════════
+elif page == "Decay Simulation":
+    st.markdown("""
+    <div style='padding:24px 0 8px;'>
+        <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#7A8EA6;
+                    text-transform:uppercase;margin-bottom:6px;'>Structural Decay Analysis</div>
+        <div style='font-size:22px;font-weight:700;color:#0D1B2A;margin-bottom:4px;'>Capacity Delta Profile</div>
+        <div style='font-size:13px;color:#7A8EA6;'>
+            Simulated capacity in <strong>{sim_year}</strong> on <strong>{pillar_labels[selected_pillar]}</strong>,
+            accounting for institutional stagnation since last active enforcement.
+        </div>
+    </div>
+    """.format(sim_year=sim_year, pillar_labels=pillar_labels, selected_pillar=selected_pillar),
+    unsafe_allow_html=True)
+
+    # KPI row
+    k1, k2, k3, k4 = st.columns(4)
+    tiles = [
+        (k1, "Avg Portfolio Readiness", f"{s_series.mean():.2f} / 3.00", "Simulated system mean", "normal"),
+        (k2, "Max Systemic Risk", s_series.index[0] if len(s_series) else "—", "Lowest capacity actor", "alert"),
+        (k3, "Ecosystem Anchor", s_series.index[-1] if len(s_series) else "—", "Highest capacity actor", "normal"),
+        (k4, "Actors Below 1.0", str(int((s_series < 1.0).sum())), "Structural gap count", "amber"),
+    ]
+    for col, label, val, sub, style in tiles:
+        with col:
+            st.markdown(f"""
+            <div class='metric-tile {style}'>
+                <div class='metric-label'>{label}</div>
+                <div class='metric-value {"alert" if style=="alert" else ""}'>{val}</div>
+                <div class='metric-sub'>{sub}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    BG = '#1E293B'
+    TEXT_PRIMARY = '#F8FAFC'
+    TEXT_SEC = '#CBD5E1'
+    BAR_NORMAL = '#38BDF8'
+    BAR_ALERT  = '#FB7185'
+    BAR_AMBER  = '#FBBF24'
+
+    plt.rcParams['font.sans-serif'] = ['Arial', 'Helvetica', 'DejaVu Sans']
+    fig, ax = plt.subplots(figsize=(10, max(5, len(s_series) * 0.65 + 1)), facecolor=BG)
+    ax.set_facecolor(BG)
+
+    def bar_color(i, val):
+        if i == 0: return BAR_ALERT
+        if val < 1.0: return BAR_AMBER
+        return BAR_NORMAL
+
+    colors = [bar_color(i, v) for i, v in enumerate(s_series.values)]
+    bars = ax.barh(s_series.index, s_series.values, color=colors, height=0.55)
+
+    for bar, val in zip(bars, s_series.values):
+        ax.text(val + 0.05, bar.get_y() + bar.get_height() / 2,
+                f'{val:.2f}', va='center', fontweight='bold',
+                color=bar.get_facecolor(), fontsize=10.5)
+
+    # Threshold lines
+    ax.axvline(1.0, color='#94A3B8', lw=1, ls='--', alpha=0.5, label='Weak threshold (1.0)')
+    ax.axvline(2.0, color='#64748B', lw=1, ls=':', alpha=0.5, label='Moderate threshold (2.0)')
+
+    ax.set_xlim(0, 3.5)
+    for spine in ax.spines.values(): spine.set_visible(False)
+    ax.tick_params(axis='both', length=0)
+    ax.set_xticks([])
+    ax.set_yticklabels(s_series.index, fontsize=10.5, fontweight='500', color=TEXT_SEC)
+    ax.legend(loc='lower right', fontsize=9, framealpha=0,
+              labelcolor=TEXT_SEC, facecolor=BG)
+
+    fig.text(0.02, 0.97, f"Structural Decay Simulation: {pillar_labels[selected_pillar]}",
+             fontsize=14, fontweight='bold', color=TEXT_PRIMARY, va='top')
+    fig.text(0.02, 0.92,
+             f"Simulated capacity in {sim_year} · Decay factor {decay_base:.2f} · "
+             f"System mean: {s_series.mean():.2f}",
+             fontsize=10, color=TEXT_SEC, va='top')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.88])
+    st.pyplot(fig)
+
+    st.markdown("""
+    <div class='callout'>
+        <strong>How to read this:</strong> Amber bars represent actors scoring below 1.0 — 
+        structural gaps where mandate exists on paper but enforcement or activity has been absent 
+        long enough to decay below functional threshold. These are the highest-priority targets 
+        for non-profit capacity-building investment.
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Trajectory chart (multi-year)
+    st.markdown("""
+    <div class='section-rule'>
+        <span class='label'>Decay Trajectories 2024–2030</span><div class='line'></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    years = list(range(2024, 2031))
+    fig3, ax3 = plt.subplots(figsize=(10, 4.5), facecolor='#FFFFFF')
+    ax3.set_facecolor('#FFFFFF')
+
+    top_actors = s_series.tail(5).index.tolist()[::-1]  # top 5
+    traj_colors = ['#0072CE', '#E63946', '#F5A623', '#2ECC71', '#9B59B6']
+
+    for actor, color in zip(top_actors, traj_colors):
+        traj = []
+        for y in years:
+            cell = structured_data[actor][selected_pillar]
+            raw = cell['mandate'] + ACTIVITY_WEIGHTS[cell['activity_type']] * (1 + cell['reach'])
+            stale = max(0, y - cell['last_year'])
+            traj.append(min(3.0, round(raw * (decay_base ** stale), 2)))
+        ax3.plot(years, traj, color=color, lw=2, marker='o', markersize=5,
+                 label=actor, markerfacecolor='white', markeredgewidth=1.5)
+
+    ax3.axhline(1.0, color='#DDE2EA', lw=1, ls='--')
+    ax3.set_xlim(2024, 2030)
+    ax3.set_ylim(0, 3.2)
+    ax3.set_ylabel('Simulated score', fontsize=10, color='#7A8EA6')
+    ax3.set_xlabel('Year', fontsize=10, color='#7A8EA6')
+    ax3.tick_params(colors='#9BAABF', length=0)
+    ax3.spines[['top', 'right']].set_visible(False)
+    ax3.spines[['bottom', 'left']].set_edgecolor('#DDE2EA')
+    ax3.legend(fontsize=9, framealpha=0, loc='upper right')
+    ax3.set_title(f'Top-5 actor trajectories · {pillar_labels[selected_pillar]}',
+                  fontsize=11, color='#0D1B2A', fontweight='600', pad=10)
 
     plt.tight_layout()
-    st.pyplot(fig2)
-    
-with tab3:
-    st.markdown("<p style='font-size: 16px; font-weight: 700; color: #111111;'>Strategic Arbitrage & Capital Deployment Playbooks</p>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size: 13.5px; color: #555555;'>Cross-referencing legal mandates against structural funding pipelines isolates three key intervention vectors. Philanthropic grants should bypass standard regulatory lobbying and align with these operational levers.</p>", unsafe_allow_html=True)
-    st.divider()
+    st.pyplot(fig3)
 
-    # ─── PLAYBOOK 1 ──────────────────────────────────────────────────────────
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PAGE 4 · PLAYBOOKS
+# ═══════════════════════════════════════════════════════════════════════════
+elif page == "Playbooks":
     st.markdown("""
-        <div class='strategy-card'>
-            <div class='badge-do'>RECOMMENDED STRATEGY</div>
-            <p style='font-size: 15px; font-weight: 700; color: #002B49; margin-top:5px; margin-bottom:5px;'>1. Force SME Algorithmic Transparency via National Labor Contracts</p>
-            <p style='font-size: 13.5px; color: #333333;'><b>The Vulnerability:</b> While SME Networks (PMI) maintain non-existent transparency and sandbox scores (0.1), Italy's business infrastructure relies natively on high-trust informal local networks, heavily resisting top-down regulatory reporting dictates from Rome.</p>
-            <p style='font-size: 13.5px; color: #333333;'><b>The Execution Vector:</b> Do not build open-source transparency toolkits for business entities. Instead, deploy grants to partner with major <b>Trade Unions (CGIL/CISL/UIL)</b>. Unions hold a robust 2.4 capacity on System Transparency. By writing algorithmic explainability mandates directly into National Collective Labor Agreements (CCNL), non-profits force legally binding operational compliance via established worker rights, entirely bypassing corporate friction.</p>
+    <div style='padding:24px 0 8px;'>
+        <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#7A8EA6;
+                    text-transform:uppercase;margin-bottom:6px;'>Strategic Arbitrage</div>
+        <div style='font-size:22px;font-weight:700;color:#0D1B2A;margin-bottom:4px;'>Capital Deployment Playbooks</div>
+        <div style='font-size:13px;color:#7A8EA6;max-width:640px;'>
+            Three targeted intervention vectors derived from the matrix cold spots.
+            Each playbook specifies the leverage mechanism, the exact institutional target,
+            and why generic alternatives fail in the Italian context.
         </div>
+    </div>
     """, unsafe_allow_html=True)
 
-    # ─── PLAYBOOK 2 ──────────────────────────────────────────────────────────
-    st.markdown("""
-        <div class='strategy-card'>
-            <div class='badge-do'>RECOMMENDED STRATEGY</div>
-            <p style='font-size: 15px; font-weight: 700; color: #002B49; margin-top:5px; margin-bottom:5px;'>2. Embed Safety Conditionality inside the €30B CDP Funding Pipeline</p>
-            <p style='font-size: 13.5px; color: #333333;'><b>The Vulnerability:</b> Cassa Depositi e Prestiti (CDP) commands maximum capital deployment leverage (3.0) but runs a near-zero internal AI risk auditing capability (0.1). Italy's promotional banking tradition prioritizes macroeconomic transition speed over risk oversight, creating an unmonitored capital pipeline.</p>
-            <p style='font-size: 13.5px; color: #333333;'><b>The Execution Vector:</b> Do not lobby the national data protection authority to curb financial lines. Instead, launch a capital-conditionality campaign targeting <b>CDP Venture Capital</b>. Because they maintain an active 2.1 footprint in SME Innovation Sandboxes, philanthropists can design and lobby for mandatory 'AI Safety Due Diligence' criteria, embedding compliance parameters directly into the deployment terms of deep-tech venture funds.</p>
+    playbooks = [
+        {
+            "num": "01",
+            "badge": "RECOMMENDED",
+            "badge_class": "go",
+            "card_class": "",
+            "score_ref": "SME Networks (PMI) × Transparency = 0.1 | Trade Unions × Transparency = 2.4",
+            "title": "Force SME Algorithmic Transparency via National Labour Contracts",
+            "vulnerability": """Italy's 4.4M SMEs run AI tools with zero transparency obligations in practice. 
+            Garante's enforcement is modelled on large-enterprise GDPR compliance. SMEs resist top-down 
+            regulatory mandates from Rome on cultural grounds — the <em>tessuto produttivo</em> (industrial fabric) 
+            of the North runs on trust networks, not compliance paperwork.""",
+            "vector": """Do not build open-source transparency toolkits and hope SMEs adopt them. 
+            Deploy grants to partner with <strong>Trade Unions (CGIL/CISL/UIL)</strong>, which hold a 2.4 score 
+            on System Transparency. By writing algorithmic explainability clauses directly into 
+            <strong>National Collective Labour Agreements (CCNL)</strong>, you force legally binding operational 
+            compliance via worker rights — a mechanism that already has enforcement infrastructure, bypasses 
+            corporate friction entirely, and is invisible to the lobbying counterpressure from Confindustria.""",
+            "entry": "CGIL Digital Rights desk (cgil.it/tematiche/digitale)",
+            "timeline": "12–18 months for CCNL negotiation cycle",
+            "budget_range": "€150K–400K (legal drafting + union partnership)",
+        },
+        {
+            "num": "02",
+            "badge": "RECOMMENDED",
+            "badge_class": "go",
+            "card_class": "",
+            "score_ref": "CDP × Risk Auditing = 0.1 | CDP Venture Capital × SME Sandboxes = 2.1",
+            "title": "Embed Safety Conditionality Inside the €30B CDP Funding Pipeline",
+            "vulnerability": """CDP commands maximum capital deployment leverage (3.0 on Funding) but runs 
+            near-zero AI risk auditing capacity (0.1). Italy's promotional banking tradition — inherited from 
+            IRI-era state capitalism — prioritises deployment velocity over risk oversight. Unlike the EIB, 
+            which integrated AI ethics criteria in 2021, CDP applies no safety due diligence to AI investments. 
+            This creates an unmonitored €30B+ capital pipeline.""",
+            "vector": """Do not lobby Garante to impose restrictions on financial flows — that crosses 
+            institutional mandates and will be blocked. Instead, launch a <strong>capital-conditionality campaign</strong> 
+            targeting <strong>CDP Venture Capital</strong>, which already has a 2.1 score on SME Sandboxes — they are 
+            reform-adjacent. Design and advocate for mandatory 'AI Safety Due Diligence' criteria as a 
+            prerequisite for deep-tech portfolio entry. Model this on the EIB's AI Ethics Framework (2021) 
+            and propose it as a reputational upgrade ahead of Italy's 2026 G7 Presidency.""",
+            "entry": "CDP Venture Capital ESG working group + MEF strategic oversight desk",
+            "timeline": "18–24 months (investment committee policy change)",
+            "budget_range": "€80K–200K (policy research + advocacy coalition)",
+        },
+        {
+            "num": "03",
+            "badge": "COUNTER-RECOMMENDED",
+            "badge_class": "stop",
+            "card_class": "red",
+            "score_ref": "Garante/AgID (Rome) vs Lombardy Region sandbox score = 3.0",
+            "title": "Avoid Centralised Registries — Bridge the Rome–Region Divide Instead",
+            "vulnerability": """Italy's constitutional architecture creates a structural trap: central regulators 
+            in Rome hold broad statutory AI oversight mandates but lack operational budget lines and SME reach, 
+            while wealthy northern regions (especially Lombardy) hold cash reserves and political will for AI 
+            sandboxes but operate completely outside national safety frameworks. Centralised registries proposed 
+            in Rome get ignored in Milan.""",
+            "vector": """Do not advocate for unified federal AI registries or central reporting mandates — 
+            these trigger constitutional gridlock (Art. 117 competency disputes) and are functionally ignored 
+            north of the Po valley. Instead, use capital to place <strong>civil society technologists as 
+            'transparency embeds'</strong> inside Lombardy Region's active sandbox programme. 
+            This validates Rome's safety standards through regional execution power, creating 
+            an <em>implementation fait accompli</em> that central regulators can then formalise upward.""",
+            "entry": "Lombardy Region Innovation Unit (regione.lombardia.it/wps/portal/istituzionale/HP/DettaglioRedazionale/servizi-e-informazioni/Imprese/innovazione)",
+            "timeline": "6–12 months to embed; 24 months to formalise",
+            "budget_range": "€120K–300K (technologist embeds + documentation)",
+        },
+    ]
+
+    for pb in playbooks:
+        st.markdown(f"""
+        <div class='s-card {pb["card_class"]}'>
+            <div style='display:flex;align-items:flex-start;gap:20px;'>
+                <div style='font-family:DM Mono,monospace;font-size:32px;font-weight:500;
+                            color:#DDE2EA;line-height:1;flex-shrink:0;'>{pb["num"]}</div>
+                <div style='flex:1;'>
+                    <div style='margin-bottom:8px;'>
+                        <span class='badge {pb["badge_class"]}'>{pb["badge"]}</span>
+                        <span style='font-family:DM Mono,monospace;font-size:10px;color:#9BAABF;
+                                     margin-left:10px;'>{pb["score_ref"]}</span>
+                    </div>
+                    <div style='font-size:16px;font-weight:700;color:#0D1B2A;margin-bottom:12px;'>{pb["title"]}</div>
+                    
+                    <div style='font-size:11px;font-family:DM Mono,monospace;letter-spacing:.08em;
+                                text-transform:uppercase;color:#7A8EA6;margin-bottom:4px;'>The Vulnerability</div>
+                    <div style='font-size:13px;color:#4A5E75;line-height:1.7;margin-bottom:14px;'>{pb["vulnerability"]}</div>
+                    
+                    <div style='font-size:11px;font-family:DM Mono,monospace;letter-spacing:.08em;
+                                text-transform:uppercase;color:#7A8EA6;margin-bottom:4px;'>The Execution Vector</div>
+                    <div style='font-size:13px;color:#2C3E50;line-height:1.7;margin-bottom:14px;'>{pb["vector"]}</div>
+                    
+                    <div style='display:flex;gap:24px;flex-wrap:wrap;border-top:1px solid #F0F2F6;padding-top:12px;'>
+                        <div>
+                            <div style='font-family:DM Mono,monospace;font-size:9px;letter-spacing:.1em;
+                                        text-transform:uppercase;color:#9BAABF;margin-bottom:3px;'>Entry Point</div>
+                            <div style='font-size:11px;color:#0072CE;'>{pb["entry"]}</div>
+                        </div>
+                        <div>
+                            <div style='font-family:DM Mono,monospace;font-size:9px;letter-spacing:.1em;
+                                        text-transform:uppercase;color:#9BAABF;margin-bottom:3px;'>Timeline</div>
+                            <div style='font-size:11px;color:#0D1B2A;'>{pb["timeline"]}</div>
+                        </div>
+                        <div>
+                            <div style='font-family:DM Mono,monospace;font-size:9px;letter-spacing:.1em;
+                                        text-transform:uppercase;color:#9BAABF;margin-bottom:3px;'>Indicative Budget</div>
+                            <div style='font-size:11px;color:#0D1B2A;'>{pb["budget_range"]}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+        """, unsafe_allow_html=True)
+
+    # PNRR funding reference
+    st.markdown("""
+    <div class='section-rule'>
+        <span class='label'>PNRR Funding Access Reference</span><div class='line'></div>
+    </div>
     """, unsafe_allow_html=True)
 
-    # ─── PLAYBOOK 3 ──────────────────────────────────────────────────────────
-    st.markdown("""
-        <div class='strategy-card'>
-            <div class='badge-not'>COUNTER-RECOMMENDED LOBBYING</div>
-            <p style='font-size: 15px; font-weight: 700; color: #E63946; margin-top:5px; margin-bottom:5px;'>3. Avoid Centralized Registries — Bridge the Rome-Regional Divide Instead</p>
-            <p style='font-size: 13.5px; color: #333333;'><b>The Structural Trap:</b> Italy's constitutional architecture creates a deep disconnect: central regulators in Rome (Garante, AgID) possess broad statutory oversight mandates but lack operational budget lines, while wealthy northern regions (Lombardy Region, scoring 3.0 on sandboxes) hold cash reserves but operate completely untethered from centralized safety frameworks.</p>
-            <p style='font-size: 13.5px; color: #333333;'><b>The Execution Vector:</b> Do not advocate for centralized registries or unified federal mandates; these initiatives trigger constitutional gridlock and are functionally ignored. Instead, use capital to place civil society technologists as 'transparency embeds' inside active regional sandbox hubs, validating Rome's standards through regional execution power.</p>
-        </div>
+    pnrr_rows = [
+        ("M1C2 – Transizione 4.0", "€13.4B", "All Italian SMEs", "Tax credit 20–45% on AI capex", "mimit.gov.it/transizione40"),
+        ("M4C1 – National Centres", "€11.4B", "Universities, research bodies, non-profits", "Competitive grants via MUR calls", "mur.gov.it/bandi"),
+        ("M4C2 – R&D Partnerships", "€11.8B", "Companies in public-private consortia", "Matched R&D grants (30–50% co-fund)", "invitalia.it"),
+        ("CDP Venture Capital", "€500M", "Italian AI scale-ups (Series A+)", "Direct equity / quasi-equity", "cdpventure.it"),
+    ]
+
+    rows_html = ""
+    for stream, budget, eligible, instrument, portal in pnrr_rows:
+        rows_html += f"""
+        <tr>
+            <td><strong>{stream}</strong></td>
+            <td style='font-family:DM Mono,monospace;color:#0072CE;'>{budget}</td>
+            <td>{eligible}</td>
+            <td>{instrument}</td>
+            <td><a href='https://{portal}' style='color:#0072CE;text-decoration:none;
+                font-family:DM Mono,monospace;font-size:11px;'>{portal}</a></td>
+        </tr>"""
+
+    st.markdown(f"""
+    <table class='styled-table'>
+        <thead><tr>
+            <th>Stream</th><th>Budget</th><th>Eligible</th>
+            <th>Instrument</th><th>Portal</th>
+        </tr></thead>
+        <tbody>{rows_html}</tbody>
+    </table>
     """, unsafe_allow_html=True)
