@@ -1,40 +1,50 @@
-import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
-import seaborn as sns
-from matplotlib.colors import LinearSegmentedColormap
-
-# ─── PAGE CONFIGURATION & CORPORATE THEME ──────────────────────────────────────
-st.set_page_config(page_title="AI Governance Strategic Engine | Italy", layout="wide")
-
-# Custom CSS for an ultra-clean corporate presentation style
-st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+with tab1:
+    clean_pillar_name = selected_pillar.replace('_', ' ')
     
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
-        color: #1A1A1A;
-    }
-    .stApp {
-        background-color: #FFFFFF;
-    }
-    /* Executive KPI Cards */
-    .kpi-card {
-        background-color: #F8F9FA;
-        border-left: 5px solid #002B49;
-        padding: 20px;
-        border-radius: 4px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        margin-bottom: 10px;
-    }
-    .kpi-card.alert {
-        border-left: 5px solid #E63946;
-    }
-    .kpi-title {
-        font-size: 12px;
-        text-transform: uppercase;
+    # ─── PREMIUM SOFT DARK THEME ───────────────────────────────────────────
+    bg_color = '#1E293B'           # Deep Slate/Navy (Much softer than pure black)
+    text_primary = '#F8FAFC'       # Crisp Off-White for main titles
+    text_secondary = '#CBD5E1'     # Lighter, highly readable silver/grey for subtitles
+    bar_normal = '#38BDF8'         # Bright Sky Blue (Elegant and luminous)
+    bar_alert = '#FB7185'          # Soft Rose/Coral for the vulnerability alert
+    
+    # Render Matplotlib Figure
+    plt.rcParams['font.sans-serif'] = ['Arial', 'Helvetica', 'DejaVu Sans']
+    fig, ax = plt.subplots(figsize=(10, 6.5), facecolor=bg_color)
+    ax.set_facecolor(bg_color)
+
+    # Assign colors: Red for the lowest score, Blue for the rest
+    colors = [bar_alert if i == 0 else bar_normal for i in range(len(s_series))]
+    bars = ax.barh(s_series.index, s_series.values, color=colors, height=0.55)
+
+    # Direct Labeling on the bars
+    for bar, val in zip(bars, s_series.values):
+        ax.text(val + 0.04, bar.get_y() + bar.get_height() / 2, 
+                f'{val:.2f}', va='center', fontweight='bold', 
+                color=bar.get_facecolor(), fontsize=10.5)
+        
+    ax.set_xlim(0, 3.4)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.tick_params(axis='both', length=0)
+    ax.set_xticks([])
+    
+    # Set y-axis labels to the readable silver
+    ax.set_yticklabels(s_series.index, fontsize=10.5, fontweight='500', color=text_secondary)
+
+    # Add insight titles with excellent contrast
+    fig.text(0.02, 0.94, f"Structural Decay Simulation: {clean_pillar_name}", 
+             fontsize=15, fontweight='bold', color=text_primary)
+    fig.text(0.02, 0.88, f"Simulated systemic capacity in {sim_year} accounting for historical performance stagnation.", 
+             fontsize=11, color=text_secondary)
+
+    # THE FIX: Restrict tight_layout to the bottom 85% of the figure so titles don't overlap
+    plt.tight_layout(rect=[0, 0, 1, 0.85])
+    st.pyplot(fig)
+    
+    st.info("**Strategic Insight:** Notice how 'On-Paper' mandates from 2021/2022 quickly drag an actor to the bottom of the rankings if no active enforcement has occurred recently.")        text-transform: uppercase;
         letter-spacing: 1px;
         color: #5A6A85;
         font-weight: 600;
