@@ -97,8 +97,3 @@ Exploratory notebook archived at `notebooks/italy_ai_governance_heatmap_v3.ipynb
 
 ---
 
-## Limitations & next
-
-- Phase 0 uses a curated static matrix (no live EU/Italian feed yet).  
-- LLM summarisation and entity compliance mapping are on the roadmap (Phases 2–4).  
-- See [ROADMAP.md](ROADMAP.md) for the full build path to a live monitoring product.
