@@ -1,0 +1,61 @@
+actor,pillar,mandate,activity_type,last_year,reach
+Garante (DPA),Risk_Auditing,1,ongoing_enforcement,2025,1
+Garante (DPA),Data_Privacy,1,ongoing_enforcement,2025,1
+Garante (DPA),SME_Sandboxes,0,one_off_position,2023,0
+Garante (DPA),Transparency,1,active_soft,2024,0
+Garante (DPA),Funding_Grants,0,one_off_position,2023,0
+AgID,Risk_Auditing,1,active_soft,2024,0
+AgID,Data_Privacy,1,active_soft,2024,0
+AgID,SME_Sandboxes,0,active_soft,2024,0
+AgID,Transparency,1,active_soft,2024,0
+AgID,Funding_Grants,1,ongoing_enforcement,2025,0
+CDP,Risk_Auditing,0,expired_dormant,2021,0
+CDP,Data_Privacy,0,expired_dormant,2021,0
+CDP,SME_Sandboxes,0,active_soft,2024,0
+CDP,Transparency,0,expired_dormant,2022,0
+CDP,Funding_Grants,1,ongoing_enforcement,2025,1
+Corte dei Conti,Risk_Auditing,1,active_soft,2024,1
+Corte dei Conti,Data_Privacy,0,one_off_position,2022,0
+Corte dei Conti,SME_Sandboxes,0,expired_dormant,2020,0
+Corte dei Conti,Transparency,1,active_soft,2024,0
+Corte dei Conti,Funding_Grants,1,ongoing_enforcement,2025,1
+Lombardy Region,Risk_Auditing,0,one_off_position,2023,0
+Lombardy Region,Data_Privacy,0,active_soft,2024,0
+Lombardy Region,SME_Sandboxes,1,ongoing_enforcement,2025,1
+Lombardy Region,Transparency,0,one_off_position,2023,0
+Lombardy Region,Funding_Grants,1,ongoing_enforcement,2025,1
+Confindustria Digitale,Risk_Auditing,0,one_off_position,2023,0
+Confindustria Digitale,Data_Privacy,0,active_soft,2024,0
+Confindustria Digitale,SME_Sandboxes,0,active_soft,2024,0
+Confindustria Digitale,Transparency,0,one_off_position,2023,0
+Confindustria Digitale,Funding_Grants,0,active_soft,2024,0
+SME Networks (PMI),Risk_Auditing,0,expired_dormant,2020,0
+SME Networks (PMI),Data_Privacy,0,one_off_position,2023,0
+SME Networks (PMI),SME_Sandboxes,0,expired_dormant,2022,0
+SME Networks (PMI),Transparency,0,expired_dormant,2021,0
+SME Networks (PMI),Funding_Grants,0,one_off_position,2023,0
+CDP Venture Capital,Risk_Auditing,0,expired_dormant,2021,0
+CDP Venture Capital,Data_Privacy,0,one_off_position,2023,0
+CDP Venture Capital,SME_Sandboxes,1,active_soft,2024,1
+CDP Venture Capital,Transparency,0,expired_dormant,2022,0
+CDP Venture Capital,Funding_Grants,1,ongoing_enforcement,2025,1
+Altroconsumo,Risk_Auditing,0,active_soft,2024,0
+Altroconsumo,Data_Privacy,1,active_soft,2025,1
+Altroconsumo,SME_Sandboxes,0,expired_dormant,2021,0
+Altroconsumo,Transparency,1,active_soft,2025,1
+Altroconsumo,Funding_Grants,0,expired_dormant,2020,0
+Trade Unions (CGIL/CISL/UIL),Risk_Auditing,1,active_soft,2024,1
+Trade Unions (CGIL/CISL/UIL),Data_Privacy,1,active_soft,2024,0
+Trade Unions (CGIL/CISL/UIL),SME_Sandboxes,0,expired_dormant,2021,0
+Trade Unions (CGIL/CISL/UIL),Transparency,1,active_soft,2025,1
+Trade Unions (CGIL/CISL/UIL),Funding_Grants,0,one_off_position,2023,0
+AIxIA,Risk_Auditing,1,active_soft,2024,0
+AIxIA,Data_Privacy,0,one_off_position,2023,0
+AIxIA,SME_Sandboxes,0,active_soft,2024,0
+AIxIA,Transparency,1,active_soft,2025,0
+AIxIA,Funding_Grants,0,active_soft,2024,0
+Fondazione Leonardo,Risk_Auditing,0,active_soft,2024,0
+Fondazione Leonardo,Data_Privacy,0,one_off_position,2023,0
+Fondazione Leonardo,SME_Sandboxes,0,expired_dormant,2021,0
+Fondazione Leonardo,Transparency,0,active_soft,2024,0
+Fondazione Leonardo,Funding_Grants,1,active_soft,2025,0

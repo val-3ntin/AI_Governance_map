@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+
+# Allow `streamlit run app.py` without an editable install (Cloud + local).
+sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
+
 import streamlit as st
 import pandas as pd
 import matplotlib
@@ -7,6 +13,16 @@ import numpy as np
 import seaborn as sns
 from matplotlib.colors import LinearSegmentedColormap
 import plotly.graph_objects as go
+
+from ai_gov_map.scoring import (
+    ACTIVITY_WEIGHTS,
+    GROUP_COLORS,
+    PILLAR_LABELS,
+    PILLARS,
+    compute_heatmap,
+    compute_scores,
+    load_data,
+)
 
 # ─── PAGE CONFIG ────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -269,135 +285,13 @@ section[data-testid="stSidebar"] p { color: #7A99B8 !important; font-size: 12px 
 
 # ─── DATA SETUP ─────────────────────────────────────────────────────────────
 @st.cache_data
-def load_data():
-    weights = {
-        'ongoing_enforcement': 1.0,
-        'active_soft':         0.7,
-        'one_off_position':    0.4,
-        'expired_dormant':     0.1,
-    }
-    data = {
-        'Garante (DPA)': {
-            'Risk_Auditing': {'mandate':1,'activity_type':'ongoing_enforcement','last_year':2025,'reach':1},
-            'Data_Privacy':  {'mandate':1,'activity_type':'ongoing_enforcement','last_year':2025,'reach':1},
-            'SME_Sandboxes': {'mandate':0,'activity_type':'one_off_position',   'last_year':2023,'reach':0},
-            'Transparency':  {'mandate':1,'activity_type':'active_soft',        'last_year':2024,'reach':0},
-            'Funding_Grants':{'mandate':0,'activity_type':'one_off_position',   'last_year':2023,'reach':0},
-        },
-        'AgID': {
-            'Risk_Auditing': {'mandate':1,'activity_type':'active_soft','last_year':2024,'reach':0},
-            'Data_Privacy':  {'mandate':1,'activity_type':'active_soft','last_year':2024,'reach':0},
-            'SME_Sandboxes': {'mandate':0,'activity_type':'active_soft','last_year':2024,'reach':0},
-            'Transparency':  {'mandate':1,'activity_type':'active_soft','last_year':2024,'reach':0},
-            'Funding_Grants':{'mandate':1,'activity_type':'ongoing_enforcement','last_year':2025,'reach':0},
-        },
-        'CDP': {
-            'Risk_Auditing': {'mandate':0,'activity_type':'expired_dormant','last_year':2021,'reach':0},
-            'Data_Privacy':  {'mandate':0,'activity_type':'expired_dormant','last_year':2021,'reach':0},
-            'SME_Sandboxes': {'mandate':0,'activity_type':'active_soft',   'last_year':2024,'reach':0},
-            'Transparency':  {'mandate':0,'activity_type':'expired_dormant','last_year':2022,'reach':0},
-            'Funding_Grants':{'mandate':1,'activity_type':'ongoing_enforcement','last_year':2025,'reach':1},
-        },
-        'Corte dei Conti': {
-            'Risk_Auditing': {'mandate':1,'activity_type':'active_soft','last_year':2024,'reach':1},
-            'Data_Privacy':  {'mandate':0,'activity_type':'one_off_position','last_year':2022,'reach':0},
-            'SME_Sandboxes': {'mandate':0,'activity_type':'expired_dormant','last_year':2020,'reach':0},
-            'Transparency':  {'mandate':1,'activity_type':'active_soft','last_year':2024,'reach':0},
-            'Funding_Grants':{'mandate':1,'activity_type':'ongoing_enforcement','last_year':2025,'reach':1},
-        },
-        'Lombardy Region': {
-            'Risk_Auditing': {'mandate':0,'activity_type':'one_off_position','last_year':2023,'reach':0},
-            'Data_Privacy':  {'mandate':0,'activity_type':'active_soft','last_year':2024,'reach':0},
-            'SME_Sandboxes': {'mandate':1,'activity_type':'ongoing_enforcement','last_year':2025,'reach':1},
-            'Transparency':  {'mandate':0,'activity_type':'one_off_position','last_year':2023,'reach':0},
-            'Funding_Grants':{'mandate':1,'activity_type':'ongoing_enforcement','last_year':2025,'reach':1},
-        },
-        'Confindustria Digitale': {
-            'Risk_Auditing': {'mandate':0,'activity_type':'one_off_position','last_year':2023,'reach':0},
-            'Data_Privacy':  {'mandate':0,'activity_type':'active_soft',    'last_year':2024,'reach':0},
-            'SME_Sandboxes': {'mandate':0,'activity_type':'active_soft',    'last_year':2024,'reach':0},
-            'Transparency':  {'mandate':0,'activity_type':'one_off_position','last_year':2023,'reach':0},
-            'Funding_Grants':{'mandate':0,'activity_type':'active_soft',    'last_year':2024,'reach':0},
-        },
-        'SME Networks (PMI)': {
-            'Risk_Auditing': {'mandate':0,'activity_type':'expired_dormant','last_year':2020,'reach':0},
-            'Data_Privacy':  {'mandate':0,'activity_type':'one_off_position','last_year':2023,'reach':0},
-            'SME_Sandboxes': {'mandate':0,'activity_type':'expired_dormant','last_year':2022,'reach':0},
-            'Transparency':  {'mandate':0,'activity_type':'expired_dormant','last_year':2021,'reach':0},
-            'Funding_Grants':{'mandate':0,'activity_type':'one_off_position','last_year':2023,'reach':0},
-        },
-        'CDP Venture Capital': {
-            'Risk_Auditing': {'mandate':0,'activity_type':'expired_dormant','last_year':2021,'reach':0},
-            'Data_Privacy':  {'mandate':0,'activity_type':'one_off_position','last_year':2023,'reach':0},
-            'SME_Sandboxes': {'mandate':1,'activity_type':'active_soft','last_year':2024,'reach':1},
-            'Transparency':  {'mandate':0,'activity_type':'expired_dormant','last_year':2022,'reach':0},
-            'Funding_Grants':{'mandate':1,'activity_type':'ongoing_enforcement','last_year':2025,'reach':1},
-        },
-        'Altroconsumo': {
-            'Risk_Auditing': {'mandate':0,'activity_type':'active_soft','last_year':2024,'reach':0},
-            'Data_Privacy':  {'mandate':1,'activity_type':'active_soft','last_year':2025,'reach':1},
-            'SME_Sandboxes': {'mandate':0,'activity_type':'expired_dormant','last_year':2021,'reach':0},
-            'Transparency':  {'mandate':1,'activity_type':'active_soft','last_year':2025,'reach':1},
-            'Funding_Grants':{'mandate':0,'activity_type':'expired_dormant','last_year':2020,'reach':0},
-        },
-        'Trade Unions (CGIL/CISL/UIL)': {
-            'Risk_Auditing': {'mandate':1,'activity_type':'active_soft','last_year':2024,'reach':1},
-            'Data_Privacy':  {'mandate':1,'activity_type':'active_soft','last_year':2024,'reach':0},
-            'SME_Sandboxes': {'mandate':0,'activity_type':'expired_dormant','last_year':2021,'reach':0},
-            'Transparency':  {'mandate':1,'activity_type':'active_soft','last_year':2025,'reach':1},
-            'Funding_Grants':{'mandate':0,'activity_type':'one_off_position','last_year':2023,'reach':0},
-        },
-        'AIxIA': {
-            'Risk_Auditing': {'mandate':1,'activity_type':'active_soft','last_year':2024,'reach':0},
-            'Data_Privacy':  {'mandate':0,'activity_type':'one_off_position','last_year':2023,'reach':0},
-            'SME_Sandboxes': {'mandate':0,'activity_type':'active_soft','last_year':2024,'reach':0},
-            'Transparency':  {'mandate':1,'activity_type':'active_soft','last_year':2025,'reach':0},
-            'Funding_Grants':{'mandate':0,'activity_type':'active_soft','last_year':2024,'reach':0},
-        },
-        'Fondazione Leonardo': {
-            'Risk_Auditing': {'mandate':0,'activity_type':'active_soft',    'last_year':2024,'reach':0},
-            'Data_Privacy':  {'mandate':0,'activity_type':'one_off_position','last_year':2023,'reach':0},
-            'SME_Sandboxes': {'mandate':0,'activity_type':'expired_dormant','last_year':2021,'reach':0},
-            'Transparency':  {'mandate':0,'activity_type':'active_soft',    'last_year':2024,'reach':0},
-            'Funding_Grants':{'mandate':1,'activity_type':'active_soft',    'last_year':2025,'reach':0},
-        },
-    }
-    
-    # Actor metadata: location, group, city, Real Lat/Lon Coordinates
-    actor_meta = {
-        'Garante (DPA)':            {'group':'Government',   'city':'Rome',    'lat': 41.9028, 'lon': 12.4964, 'color':'#0072CE'},
-        'AgID':                     {'group':'Government',   'city':'Rome',    'lat': 41.9200, 'lon': 12.5100, 'color':'#0072CE'},
-        'CDP':                      {'group':'Government',   'city':'Rome',    'lat': 41.8800, 'lon': 12.4800, 'color':'#0072CE'},
-        'Corte dei Conti':          {'group':'Government',   'city':'Rome',    'lat': 41.9100, 'lon': 12.4600, 'color':'#0072CE'},
-        'Lombardy Region':          {'group':'Regional',     'city':'Milan',   'lat': 45.4642, 'lon': 9.1900,  'color':'#2ECC71'},
-        'Confindustria Digitale':   {'group':'Industry',     'city':'Rome',    'lat': 41.8900, 'lon': 12.5200, 'color':'#F5A623'},
-        'SME Networks (PMI)':       {'group':'Industry',     'city':'Bologna', 'lat': 44.4949, 'lon': 11.3426, 'color':'#F5A623'},
-        'CDP Venture Capital':      {'group':'Industry',     'city':'Rome',    'lat': 41.8500, 'lon': 12.5000, 'color':'#F5A623'},
-        'Altroconsumo':             {'group':'Civil Society','city':'Milan',   'lat': 45.4800, 'lon': 9.2000,  'color':'#E63946'},
-        'Trade Unions (CGIL/CISL/UIL)':{'group':'Civil Society','city':'Rome', 'lat': 41.8700, 'lon': 12.4500, 'color':'#E63946'},
-        'AIxIA':                    {'group':'Academia',     'city':'Turin',   'lat': 45.0703, 'lon': 7.6869,  'color':'#9B59B6'},
-        'Fondazione Leonardo':      {'group':'Academia',     'city':'Rome',    'lat': 41.9300, 'lon': 12.4800, 'color':'#9B59B6'},
-    }
-    return data, weights, actor_meta
+def _cached_load_data():
+    return load_data()
 
-structured_data, ACTIVITY_WEIGHTS, ACTOR_META = load_data()
-pillars = ['Risk_Auditing', 'Data_Privacy', 'SME_Sandboxes', 'Transparency', 'Funding_Grants']
-pillar_labels = {
-    'Risk_Auditing': 'Risk Auditing',
-    'Data_Privacy': 'Data Privacy',
-    'SME_Sandboxes': 'SME Sandboxes',
-    'Transparency': 'Transparency',
-    'Funding_Grants': 'Funding & Grants',
-}
+structured_data, _weights, ACTOR_META = _cached_load_data()
+pillars = PILLARS
+pillar_labels = PILLAR_LABELS
 actors = list(structured_data.keys())
-
-GROUP_COLORS = {
-    'Government':   '#0072CE',
-    'Regional':     '#2ECC71',
-    'Industry':     '#F5A623',
-    'Civil Society':'#E63946',
-    'Academia':     '#9B59B6',
-}
 
 # ─── SIDEBAR ────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -438,31 +332,10 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
 # ─── COMPUTE ENGINE ─────────────────────────────────────────────────────────
-def compute_scores(pillar, year, decay):
-    scores = {}
-    for actor in actors:
-        cell = structured_data[actor][pillar]
-        activity_w = ACTIVITY_WEIGHTS[cell['activity_type']]
-        reach_bonus = 1 + cell['reach']
-        raw = cell['mandate'] + activity_w * reach_bonus
-        years_stale = max(0, year - cell['last_year'])
-        scores[actor] = min(3.0, round(raw * (decay ** years_stale), 2))
-    return scores
-
-simulated_scores = compute_scores(selected_pillar, sim_year, decay_base)
+simulated_scores = compute_scores(structured_data, selected_pillar, sim_year, decay_base)
 filtered_actors = [a for a in actors if ACTOR_META[a]['group'] in selected_group]
 s_series = pd.Series({a: simulated_scores[a] for a in filtered_actors}).sort_values(ascending=True)
-
-full_heatmap_data = []
-for actor in actors:
-    row = {}
-    for p in pillars:
-        cell = structured_data[actor][p]
-        raw = cell['mandate'] + ACTIVITY_WEIGHTS[cell['activity_type']] * (1 + cell['reach'])
-        years_stale = max(0, sim_year - cell['last_year'])
-        row[p] = min(3.0, round(raw * (decay_base ** years_stale), 2))
-    full_heatmap_data.append(row)
-df_heat = pd.DataFrame(full_heatmap_data, index=actors)
+df_heat = compute_heatmap(structured_data, sim_year, decay_base, pillars=pillars)
 
 # ─── PAGES ──────────────────────────────────────────────────────────────────
 page = st.sidebar.radio(

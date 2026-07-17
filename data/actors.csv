@@ -1,0 +1,13 @@
+actor,group,city,lat,lon,color
+Garante (DPA),Government,Rome,41.9028,12.4964,#0072CE
+AgID,Government,Rome,41.9200,12.5100,#0072CE
+CDP,Government,Rome,41.8800,12.4800,#0072CE
+Corte dei Conti,Government,Rome,41.9100,12.4600,#0072CE
+Lombardy Region,Regional,Milan,45.4642,9.1900,#2ECC71
+Confindustria Digitale,Industry,Rome,41.8900,12.5200,#F5A623
+SME Networks (PMI),Industry,Bologna,44.4949,11.3426,#F5A623
+CDP Venture Capital,Industry,Rome,41.8500,12.5000,#F5A623
+Altroconsumo,Civil Society,Milan,45.4800,9.2000,#E63946
+Trade Unions (CGIL/CISL/UIL),Civil Society,Rome,41.8700,12.4500,#E63946
+AIxIA,Academia,Turin,45.0703,7.6869,#9B59B6
+Fondazione Leonardo,Academia,Rome,41.9300,12.4800,#9B59B6
