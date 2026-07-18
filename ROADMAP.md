@@ -29,10 +29,11 @@
 Free sources                Package                         Flat data (git)
 ─────────────               ─────────                       ───────────────
 EUR-Lex  ─┐                 src/ai_gov_map/
-OECD.AI  ─┼─► ingest.py  ──► data/raw/ + regulation_data.csv
+OECD.AI* ─┼─► ingest/   ──► data/raw/ + regulation_data.csv
 AgID RSS ─┤                 scoring.py ──► scores.csv / history.json
 Garante  ─┤                 summarise.py ─► summaries.jsonl (Ollama → HF fallback)
 GDELT   ─┘                 match.py     ─► impact_flags.csv (entities.yaml)
+  *curated fallback (no public API)
                             confidence.py ► needs_human_review + overrides.json
                                    │
                                    ▼
@@ -56,7 +57,7 @@ GDELT   ─┘                 match.py     ─► impact_flags.csv (entities.ya
    ```text
    src/ai_gov_map/
      __init__.py
-     ingest.py      # stubs OK in P0; real clients in P1
+     ingest/       # Phase 1 — EUR-Lex / OECD / RSS / GDELT clients + CLI
      scoring.py     # extract compute_scores + weights
      dashboard.py   # page helpers / chart builders used by app.py
    data/
@@ -76,7 +77,7 @@ GDELT   ─┘                 match.py     ─► impact_flags.csv (entities.ya
 
 ---
 
-## Phase 1 — Automate data ingestion (Weeks 2–3)
+## Phase 1 — Automate data ingestion (Weeks 2–3) — **IMPLEMENTED (local)**
 
 **Definition of done:** Monthly GitHub Action updates `data/regulation_data.csv`; run is green on `main`.
 
@@ -84,25 +85,25 @@ GDELT   ─┘                 match.py     ─► impact_flags.csv (entities.ya
 
 | Source | Use | Notes |
 |--------|-----|--------|
-| EUR-Lex REST/SPARQL | Official EU AI Act text + amendments | Primary legal corpus |
-| OECD.AI Policy Observatory API | National AI policy tracking | EU vs Italy comparison |
+| EUR-Lex Cellar SPARQL | Official EU AI Act text + corrigenda (`32024R1689*`) | Primary legal corpus → `data/raw/` |
+| OECD.AI Policy Observatory | EU vs Italy comparison | **No stable public API** — curated public-page fallback documented in `ingest/oecd.py` |
 | AgID + Garante Privacy RSS | Italian institutional signals | No auth |
-| GDELT | AI-governance news fallback | No key; noisy — filter hard |
+| GDELT Doc 2.0 | AI-governance news fallback | No key; noisy — hard-filtered; may 429 |
 
 ### Tasks
 
-1. Implement thin clients under `src/ai_gov_map/ingest/` (one module per source).
-2. Normalise to a single schema, e.g.  
+1. ~~Implement thin clients under `src/ai_gov_map/ingest/` (one module per source).~~
+2. ~~Normalise to a single schema~~  
    `id, date, title, source, url, jurisdiction, text_excerpt, fetched_at`
-3. Write `.github/workflows/ingest.yml` — `schedule: cron: '0 6 1 * *'` + `workflow_dispatch`.
-4. Action: install deps → run `python -m ai_gov_map.ingest` → commit CSV if changed (or open a PR).
-5. Document cadence in README (“refreshed monthly”).
+3. ~~Write `.github/workflows/ingest.yml` — `schedule: cron: '0 6 1 * *'` + `workflow_dispatch`.~~
+4. ~~Action: install deps → run `python -m ai_gov_map.ingest` → commit CSV if changed.~~
+5. ~~Document cadence in README (“refreshed monthly”).~~
 
 ### Acceptance checklist
 
-- [ ] Dry-run locally produces valid CSV
-- [ ] Action completes on public repo without secrets (or only optional HF token later)
-- [ ] Existing heatmap still runs if ingest fails (graceful empty/new file)
+- [x] Dry-run locally produces valid CSV (`python -m ai_gov_map.ingest`)
+- [ ] Action completes on public repo without secrets *(enable after merge to `main`; workflow is present)*
+- [x] Existing heatmap still runs if ingest fails (per-source isolation; never wipe CSV on total failure)
 
 ---
 
@@ -240,12 +241,12 @@ AI_Governance_map/
 
 ---
 
-## This week — execute Phase 0 only
+## This week — Phase 1 shipped locally; next
 
-1. Extract `load_data` / `compute_scores` into `src/ai_gov_map/scoring.py`; dump matrix to `data/scores.csv`.  
-2. Slim `app.py`; confirm local UI parity.  
-3. Pin requirements; add minimal README.  
-4. Deploy Streamlit Community Cloud; add live link.  
-5. Open a `phase-1-ingest` branch only after the URL is live.
+1. ~~Extract scoring + data load into `src/`; pin deps; README.~~ (Phase 0 on `main`)  
+2. ~~Ingest package + monthly workflow + tests.~~ (Phase 1 in working tree)  
+3. Commit/push Phase 1; confirm Actions green via `workflow_dispatch`.  
+4. Deploy Streamlit Community Cloud; paste live URL into README.  
+5. Start Phase 2 (Ollama/HF summarisation) when ready.
 
-When Phase 0 is done, say the word and implementation can start on extraction + deploy step-by-step.
+When Phase 1 is on `main` with a green Action, say the word for Phase 2.

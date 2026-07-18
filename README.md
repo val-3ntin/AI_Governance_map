@@ -5,35 +5,36 @@
 Italy’s AI governance is fragmented: enforcement concentrated in Rome, an SME-heavy economy, and large digital funds (PNRR/CDP) with limited AI-risk conditionality. This project quantifies institutional capacity across **12 actors × 5 pillars**, applies a dormancy-decay model, and surfaces intervention leverage — with a free/open stack and a path to live compliance monitoring.
 
 > **Live demo:** *[add Streamlit Community Cloud URL after deploy]*  
-> **Roadmap:** see [ROADMAP.md](ROADMAP.md)
+> **Roadmap:** see [ROADMAP.md](ROADMAP.md)  
+> **Regulation feed:** `data/regulation_data.csv` — refreshed **monthly** via GitHub Actions (and on demand with `workflow_dispatch`)
 
 ---
 
 ## Architecture
 
 ```text
-data/*.csv          actor×pillar matrix + metadata (versioned flat files)
-        │
-        ▼
-src/ai_gov_map/
-  scoring.py        load_data · compute_scores · compute_heatmap
-  ingest.py         Phase 1 — EUR-Lex / OECD / RSS / GDELT (stub)
-  dashboard.py      shared UI helpers
-        │
-        ▼
-app.py              Streamlit entry (Briefing · Map · Matrix · Decay · Playbooks)
-        │
-        ▼
-Streamlit Community Cloud (free hosting)
+Free sources                Package                         Flat data (git)
+─────────────               ─────────                       ───────────────
+EUR-Lex SPARQL ─┐           src/ai_gov_map/
+OECD.AI (curated)┼─► ingest/ ──► data/raw/ + regulation_data.csv
+AgID / Garante ─┤           scoring.py ──► scores.csv
+GDELT (fallback)┘           dashboard.py
+                                   │
+                                   ▼
+                            app.py (Streamlit)
 ```
 
 ```mermaid
 flowchart LR
-  CSV[data/scores.csv + actors.csv] --> Score[scoring.py]
+  EUR[EUR-Lex Cellar] --> Ingest[ai_gov_map.ingest]
+  OECD[OECD.AI curated] --> Ingest
+  RSS[AgID + Garante RSS] --> Ingest
+  GDELT[GDELT Doc 2.0] --> Ingest
+  Ingest --> CSV[regulation_data.csv]
+  Scores[scores.csv + actors.csv] --> Score[scoring.py]
   Score --> App[app.py Streamlit]
-  App --> Cloud[Community Cloud]
-  Ingest[ingest.py Phase 1+] -.-> Reg[regulation_data.csv]
-  Reg -.-> App
+  CSV -.-> App
+  GH[GitHub Actions monthly] --> Ingest
 ```
 
 ---
@@ -45,13 +46,8 @@ cd AI_Governance_map
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
+pip install -e .
 streamlit run app.py
-```
-
-Optional editable install:
-
-```bash
-pip install -e ".[dev]"
 ```
 
 Run tests:
@@ -59,6 +55,30 @@ Run tests:
 ```bash
 pytest -q
 ```
+
+### Refresh regulation data
+
+```bash
+python -m ai_gov_map.ingest
+# optional: subset of sources
+python -m ai_gov_map.ingest --sources eurlex agid garante
+```
+
+Writes/merges into `data/regulation_data.csv` (schema: `id,date,title,source,url,jurisdiction,text_excerpt,fetched_at`). Per-source failures are skipped; a total failure **does not wipe** an existing CSV.
+
+---
+
+## Ingest sources (Phase 1)
+
+| Source | Endpoint / approach | Notes |
+|--------|---------------------|--------|
+| **EUR-Lex** | Cellar SPARQL (`publications.europa.eu/webapi/rdf/sparql`) | EU AI Act CELEX `32024R1689*` → EUR-Lex TXT links; raw JSON under `data/raw/` |
+| **OECD.AI** | Curated public pages (no stable public API) | Italy national dashboard + Observatory overview + EC AI framework page for EU vs Italy comparison |
+| **AgID** | `https://www.agid.gov.it/it/rss.xml` | Italian digital-agency news; AI-keyword soft filter |
+| **Garante** | `https://www.garanteprivacy.it/o/gpdp-rss/rss?t=news` | Privacy authority news RSS |
+| **GDELT** | Doc 2.0 ArtList (no key) | Noisy fallback; hard-filtered for AI Act / governance terms; may 429 under load |
+
+Automation: [`.github/workflows/ingest.yml`](.github/workflows/ingest.yml) — cron `0 6 1 * *` + manual run; installs package, runs ingest + pytest, commits `regulation_data.csv` when changed (`contents: write`).
 
 ---
 
@@ -69,7 +89,7 @@ pytest -q
 3. Select repo / branch `main` / Main file path: `app.py`.
 4. Deploy → paste the URL into this README and the GitHub repo **About → Website**.
 
-No secrets required for Phase 0.
+No secrets required for Phases 0–1.
 
 ---
 
@@ -83,15 +103,16 @@ No secrets required for Phase 0.
 | Decay Simulation | Obsolescence over a chosen horizon |
 | Playbooks | Intervention vectors for non-profit capital |
 
-Data lives in `data/scores.csv` and `data/actors.csv` — edit the CSVs, not Python literals.
+Capacity data lives in `data/scores.csv` and `data/actors.csv`. Regulatory items accumulate in `data/regulation_data.csv` (timeline UI lands in Phase 5).
 
 ---
 
 ## Stack
 
-- Python 3.10+ · Streamlit · pandas · Plotly / Matplotlib / Seaborn  
+- Python 3.10+ · Streamlit · pandas · Plotly / Matplotlib / Seaborn · requests · feedparser  
 - Flat files in git (no database)  
-- Planned: GitHub Actions ingest, Ollama/HF summaries, judgment/override log  
+- GitHub Actions monthly ingest (free on public repos)  
+- Planned: Ollama/HF summaries, judgment/override log  
 
 Exploratory notebook archived at `notebooks/italy_ai_governance_heatmap_v3.ipynb` (not used at runtime).
 
@@ -99,6 +120,8 @@ Exploratory notebook archived at `notebooks/italy_ai_governance_heatmap_v3.ipynb
 
 ## Limitations & next
 
-- Phase 0 uses a curated static matrix (no live EU/Italian feed yet).  
+- Capacity heatmap still uses a curated static matrix; regulation CSV is separate until Phase 5 wires it into the UI.  
+- OECD.AI has **no reliable public API** — Phase 1 uses a documented curated-page fallback, not scraped HTML tables.  
+- GDELT is rate-limited and noisy; treat it as a secondary signal.  
 - LLM summarisation and entity compliance mapping are on the roadmap (Phases 2–4).  
-- See [ROADMAP.md](ROADMAP.md) for the full build path to a live monitoring product.
+- See [ROADMAP.md](ROADMAP.md) for the full build path.
