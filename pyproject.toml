@@ -7,7 +7,7 @@ name = "ai-gov-map"
 version = "0.2.0"
 description = "Italy / EU AI governance capacity map and regulatory compliance monitor"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.14"
 dependencies = [
     "streamlit==1.41.1",
     "pandas==2.2.3",
