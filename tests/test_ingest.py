@@ -11,9 +11,11 @@ from ai_gov_map.ingest.eurlex import fetch_ai_act_family
 from ai_gov_map.ingest.gdelt import fetch_gdelt
 from ai_gov_map.ingest.models import SCHEMA_COLUMNS, RegulationRecord
 from ai_gov_map.ingest.normalize import (
+    clean_text,
     dedupe_records,
     make_record,
     merge_records,
+    normalize_url,
     parse_date,
     read_csv,
     write_csv,
@@ -256,3 +258,34 @@ def test_dedupe_drops_duplicate_urls():
     out = dedupe_records([a, b])
     assert len(out) == 1
     assert out[0].id == "a"
+
+
+def test_clean_text_strips_html_and_truncates():
+    long = "<p>" + ("word " * 300) + "</p>"
+    cleaned = clean_text(long, max_len=40)
+    assert "<" not in cleaned
+    assert len(cleaned) <= 40
+    assert cleaned.endswith("…")
+
+
+def test_normalize_url_lowercases_and_strips_slash():
+    assert normalize_url("HTTPS://Example.COM/Path/") == "https://example.com/Path"
+    assert normalize_url("") == ""
+    assert normalize_url(None) == ""
+
+
+def test_merge_empty_incoming_preserves_existing():
+    existing = [
+        make_record(
+            source="Seed",
+            title="Keep",
+            url="https://ex.com/keep",
+            jurisdiction="EU",
+            record_id="keep:1",
+            date="2024-01-01",
+            fetched_at="2024-01-01T00:00:00Z",
+        )
+    ]
+    merged = merge_records(existing, [])
+    assert len(merged) == 1
+    assert merged[0].id == "keep:1"

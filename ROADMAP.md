@@ -6,20 +6,18 @@
 
 ---
 
-## Current baseline (as of main)
+## Current baseline (as of `phase6-polish`)
 
 | Artifact | State | Gap |
 |----------|--------|-----|
-| `README.md` | One-line description | No problem statement, architecture, or demo link |
-| `requirements.txt` | Unpinned (`streamlit`, `pandas`, …) | Fragile installs |
-| `app.py` | ~1040-line Streamlit monolith; hardcoded actor/pillar matrix | Logic not reusable or testable |
-| `italy_ai_governance_heatmap_v3.ipynb` | Primary research/logic notebook | Blocks “real package” credibility |
-| Live demo | None (no homepage URL) | Recruiters cannot click anything |
-| Ingestion / CI / tests / LLM / overrides | Absent | Entire Phases 1–6 |
+| `README.md` | Problem, architecture, commands, limitations | Live demo URL still a placeholder |
+| `CHANGELOG.md` | Keep a Changelog covering Phases 0–6 | Tag `v0.2.0` when merging to `main` |
+| `requirements.txt` | Pinned | — |
+| Package + CLIs | ingest / summarise / match / confidence / overrides | Merge branch stack to `main` |
+| Tests + CI | ≥50 pytest; `.github/workflows/ci.yml` | Green on GitHub after first push |
+| Live demo | Not deployed | Streamlit Community Cloud (manual) |
 
-**What already works and should be preserved:** Italy/EU framing, 12 actors × 5 pillars, decay scoring, Briefing / Stakeholder Map / Capacity Matrix / Decay Simulation / Playbooks UI.
-
-**Rule:** Do not start Phase 1 until Phase 0 has a **live Streamlit URL**. A clean package + demo beats half-built APIs with no runnable app.
+**What already works and should be preserved:** Italy/EU framing, 12 actors × 5 pillars, decay scoring, Briefing / Stakeholder Map / Capacity Matrix / Decay Simulation / Playbooks / Regulatory Feed UI.
 
 ---
 
@@ -167,7 +165,7 @@ GDELT   ─┘                 match/       ─► impact_flags.csv (entities.ya
 
 ---
 
-## Phase 5 — Dashboard upgrade (Week 8)
+## Phase 5 — Dashboard upgrade (Week 8) — **IMPLEMENTED (local)**
 
 **Definition of done:** Heatmap preserved; timeline + filters + export shipped.
 
@@ -189,21 +187,24 @@ GDELT   ─┘                 match/       ─► impact_flags.csv (entities.ya
 
 ---
 
-## Phase 6 — Testing & polish (Week 9, 3–5 days)
+## Phase 6 — Testing & polish (Week 9, 3–5 days) — **IMPLEMENTED (local)**
 
 **Definition of done:** Repo looks finished to a recruiter skimming for 90 seconds.
 
 ### Tasks
 
-1. **pytest** — 10–15 tests on ingest normalisation + scoring decay edge cases.
-2. **CHANGELOG.md** — Keep a Changelog style.
-3. **README (final)** — problem, architecture, screenshots/GIF, live demo, stack, limitations & what you’d improve.
-4. Optional: GitHub Topics (`ai-governance`, `streamlit`, `eu-ai-act`, `italy`).
+1. ~~**pytest** — ingest normalisation + scoring decay edge cases (suite ≥50).~~
+2. ~~**CHANGELOG.md** — Keep a Changelog style (Phases 0–6).~~
+3. ~~**README (final)** — problem, architecture, screenshots/GIF placeholder, live demo placeholder, stack, limitations & what you’d improve.~~
+4. ~~Optional: GitHub Topics suggestion in README (`ai-governance`, `streamlit`, `eu-ai-act`, `italy`, …).~~
+5. ~~Optional: `.github/workflows/ci.yml` runs `pytest` on push/PR.~~
 
 ### Acceptance checklist
 
-- [ ] `pytest` green in CI (optional workflow) or documented locally
-- [ ] Limitations section is specific (not generic)
+- [x] `pytest` green locally; CI workflow present (`.github/workflows/ci.yml`)
+- [x] Limitations section is specific (not generic)
+- [ ] Screenshots/GIF committed under `docs/` *(after Cloud deploy or local capture)*
+- [ ] Live demo URL pasted into README + GitHub About *(Streamlit Community Cloud)*
 
 ---
 
@@ -219,6 +220,7 @@ AI_Governance_map/
 ├── app.py
 ├── .streamlit/config.toml
 ├── .github/workflows/ingest.yml
+├── .github/workflows/ci.yml
 ├── data/
 │   ├── scores.csv
 │   ├── regulation_data.csv
@@ -252,7 +254,7 @@ AI_Governance_map/
 
 ---
 
-## This week — Phase 5 shipped locally; next
+## This week — Phase 6 shipped locally; remaining manual
 
 1. ~~Extract scoring + data load into `src/`; pin deps; README.~~ (Phase 0 on `main`)  
 2. ~~Ingest package + monthly workflow + tests.~~ (Phase 1 branches / PRs)  
@@ -260,7 +262,10 @@ AI_Governance_map/
 4. ~~Entity profiles + rules matcher → `impact_flags.csv`.~~ (Phase 3 on `phase3-entities`)  
 5. ~~Confidence heuristics + override log (`overrides.json`).~~ (Phase 4 on `phase4-judgement`)  
 6. ~~Timeline + filters + export (**Regulatory Feed** page).~~ (Phase 5 on `phase5-dashboard`)  
-7. Deploy Streamlit Community Cloud; paste live URL into README.  
-8. Start Phase 6 (pytest polish, CHANGELOG, final README / screenshots) when ready.
+7. ~~Pytest polish, CHANGELOG, final README, CI workflow.~~ (Phase 6 on `phase6-polish`)  
+8. **Manual:** merge PR stack carefully (Phase 1 open PRs #1/#2 exist; Phases 2–6 are local) — do not force-push.  
+9. **Manual:** push phase branches / open PRs when ready; enable ingest Action on `main`.  
+10. **Manual:** deploy Streamlit Community Cloud; paste live URL + add screenshots.  
+11. **Manual:** set GitHub Topics from the README suggestion list.
 
-When Phase 5 is reviewed, say the word for Phase 6.
+Phases 0–6 code is complete locally; the “complete project” gate still needs the live URL + a green ingest run on public `main`.
