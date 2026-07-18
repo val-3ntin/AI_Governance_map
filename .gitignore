@@ -8,3 +8,9 @@ __pycache__/
 dist/
 build/
 .streamlit/secrets.toml
+
+# Transient ingest snapshots (keep data/raw/README.md)
+data/raw/*.json
+data/raw/*.xml
+data/raw/*.txt
+!data/raw/README.md
