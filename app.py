@@ -6,23 +6,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
 import streamlit as st
 import pandas as pd
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
-from matplotlib.colors import LinearSegmentedColormap
-import plotly.graph_objects as go
 
-from ai_gov_map.dashboard import (
-    RISK_TIERS,
-    build_monitor_frame,
-    build_timeline_figure,
-    dataframe_to_csv,
-    dataframe_to_json,
-    filter_monitor,
-    list_tracked_entities,
-)
 from ai_gov_map.scoring import (
     ACTIVITY_WEIGHTS,
     GROUP_COLORS,
@@ -32,6 +17,39 @@ from ai_gov_map.scoring import (
     compute_scores,
     load_data,
 )
+
+# Heavy viz libs (matplotlib / seaborn / plotly) and the regulatory dashboard
+# helpers are imported lazily inside the pages that need them so Streamlit
+# Cloud can pass health checks before cold-importing those packages.
+
+
+def _import_pyplot():
+    """Lazy matplotlib.pyplot (no seaborn) for Decay Simulation charts."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    return plt
+
+
+def _import_matplotlib():
+    """Lazy matplotlib + seaborn for Capacity Matrix heatmap."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    from matplotlib.colors import LinearSegmentedColormap
+
+    return plt, sns, LinearSegmentedColormap
+
+
+def _import_plotly_go():
+    """Lazy plotly.graph_objects for Stakeholder Map."""
+    import plotly.graph_objects as go
+
+    return go
 
 # ─── PAGE CONFIG ────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -340,12 +358,6 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-# ─── COMPUTE ENGINE ─────────────────────────────────────────────────────────
-simulated_scores = compute_scores(structured_data, selected_pillar, sim_year, decay_base)
-filtered_actors = [a for a in actors if ACTOR_META[a]['group'] in selected_group]
-s_series = pd.Series({a: simulated_scores[a] for a in filtered_actors}).sort_values(ascending=True)
-df_heat = compute_heatmap(structured_data, sim_year, decay_base, pillars=pillars)
-
 # ─── PAGES ──────────────────────────────────────────────────────────────────
 page = st.sidebar.radio(
     "NAVIGATION",
@@ -359,6 +371,24 @@ page = st.sidebar.radio(
     ],
     label_visibility="collapsed",
 )
+
+# Score / heatmap only for pages that render them (skip Briefing / Playbooks / Feed).
+_SCORE_PAGES = {"Stakeholder Map", "Capacity Matrix", "Decay Simulation"}
+simulated_scores = None
+s_series = None
+df_heat = None
+if page in _SCORE_PAGES:
+    simulated_scores = compute_scores(
+        structured_data, selected_pillar, sim_year, decay_base
+    )
+    filtered_actors = [a for a in actors if ACTOR_META[a]["group"] in selected_group]
+    s_series = pd.Series(
+        {a: simulated_scores[a] for a in filtered_actors}
+    ).sort_values(ascending=True)
+    if page == "Capacity Matrix":
+        df_heat = compute_heatmap(
+            structured_data, sim_year, decay_base, pillars=pillars
+        )
 
 # ═══════════════════════════════════════════════════════════════════════════
 # PAGE 0 · BRIEFING (landing)
@@ -515,6 +545,7 @@ if page == "Briefing":
 # PAGE 1 · STAKEHOLDER MAP (Plotly Interactive)
 # ═══════════════════════════════════════════════════════════════════════════
 elif page == "Stakeholder Map":
+    go = _import_plotly_go()
     st.markdown("""
     <div style='padding:24px 0 8px;'>
         <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#7A8EA6;
@@ -633,6 +664,7 @@ elif page == "Stakeholder Map":
 # PAGE 2 · CAPACITY MATRIX
 # ═══════════════════════════════════════════════════════════════════════════
 elif page == "Capacity Matrix":
+    plt, sns, LinearSegmentedColormap = _import_matplotlib()
     st.markdown("""
     <div style='padding:24px 0 16px;'>
         <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#7A8EA6;
@@ -708,6 +740,7 @@ elif page == "Capacity Matrix":
 # PAGE 3 · DECAY SIMULATION
 # ═══════════════════════════════════════════════════════════════════════════
 elif page == "Decay Simulation":
+    plt = _import_pyplot()
     st.markdown(f"""
     <div style='padding:24px 0 8px;'>
         <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#7A8EA6;
@@ -933,6 +966,16 @@ elif page == "Playbooks":
 # PAGE 5 · REGULATORY FEED (Phase 5 timeline + filters + export)
 # ═══════════════════════════════════════════════════════════════════════════
 elif page == "Regulatory Feed":
+    from ai_gov_map.dashboard import (
+        RISK_TIERS,
+        build_monitor_frame,
+        build_timeline_figure,
+        dataframe_to_csv,
+        dataframe_to_json,
+        filter_monitor,
+        list_tracked_entities,
+    )
+
     st.markdown("""
     <div style='padding:24px 0 8px;'>
         <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#7A8EA6;

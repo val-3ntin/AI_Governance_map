@@ -8,11 +8,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 
 from ai_gov_map.match.load import load_entities
 from ai_gov_map.match.store import read_impact_flags
@@ -20,6 +18,9 @@ from ai_gov_map.overrides import effective_tier
 from ai_gov_map.overrides.store import overrides_by_id
 from ai_gov_map.summarise.models import RISK_TIERS
 from ai_gov_map.summarise.store import load_summaries
+
+if TYPE_CHECKING:
+    import plotly.graph_objects as go
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_REGULATION = _REPO_ROOT / "data" / "regulation_data.csv"
@@ -282,6 +283,9 @@ def dataframe_to_json(df: pd.DataFrame) -> str:
 
 def build_timeline_figure(df: pd.DataFrame) -> go.Figure:
     """Plotly scatter timeline of regulatory items by date and risk tier."""
+    import plotly.express as px
+    import plotly.graph_objects as go
+
     if df is None or df.empty:
         fig = go.Figure()
         fig.update_layout(

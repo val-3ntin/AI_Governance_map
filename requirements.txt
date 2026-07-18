@@ -1,9 +1,12 @@
+# Streamlit Community Cloud + local `streamlit run app.py`.
+# Keep this lean: heavy viz libs are imported lazily in app pages.
 streamlit==1.41.1
 pandas==2.2.3
 numpy==2.2.1
 matplotlib==3.10.0
 seaborn==0.13.2
 plotly==5.24.1
+PyYAML==6.0.2
+# Ingest CLI (optional on Cloud; needed for local pipeline / CI):
 requests==2.32.3
 feedparser==6.0.11
-PyYAML==6.0.2
