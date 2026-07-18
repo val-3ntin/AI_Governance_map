@@ -971,6 +971,7 @@ elif page == "Regulatory Feed":
         build_timeline_figure,
         dataframe_to_csv,
         dataframe_to_json,
+        feed_display_frame,
         filter_monitor,
         list_tracked_entities,
         load_overrides_table,
@@ -1107,30 +1108,24 @@ elif page == "Regulatory Feed":
             if filtered.empty:
                 st.warning("No matches — clear filters")
             else:
-                display_cols = [
-                    "date",
-                    "title",
-                    "source",
-                    "effective_tier",
-                    "needs_review",
-                    "overridden",
-                    "matched_entity_names",
-                    "jurisdiction",
-                    "url",
-                ]
+                # Intersection only — never KeyError if a badge col is missing.
+                display_df = feed_display_frame(filtered)
+                col_config = {
+                    "url": st.column_config.LinkColumn("url", width="medium"),
+                    "title": st.column_config.TextColumn("title", width="large"),
+                    "effective_tier": st.column_config.TextColumn(
+                        "effective_tier", width="small"
+                    ),
+                    "needs_review": st.column_config.CheckboxColumn("needs_review"),
+                    "overridden": st.column_config.CheckboxColumn("overridden"),
+                }
                 st.dataframe(
-                    filtered[display_cols],
+                    display_df,
                     use_container_width=True,
                     hide_index=True,
                     height=420,
                     column_config={
-                        "url": st.column_config.LinkColumn("url", width="medium"),
-                        "title": st.column_config.TextColumn("title", width="large"),
-                        "effective_tier": st.column_config.TextColumn(
-                            "effective_tier", width="small"
-                        ),
-                        "needs_review": st.column_config.CheckboxColumn("needs_review"),
-                        "overridden": st.column_config.CheckboxColumn("overridden"),
+                        k: v for k, v in col_config.items() if k in display_df.columns
                     },
                 )
 
