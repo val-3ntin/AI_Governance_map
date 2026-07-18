@@ -232,6 +232,8 @@ No secrets required for Phases 0–6 if you ship cached `data/summaries.jsonl`, 
 - Judgement: confidence heuristics + human overrides → `overrides.json`  
 - Monitor UI: `dashboard.py` → Regulatory Feed page  
 
+**Streamlit Community Cloud:** Main file `app.py`. In **Advanced settings**, set **Python 3.12** (Cloud ignores `runtime.txt` / `.python-version` and often defaults to 3.13, which can stall dependency installs). After a requirements change, use **Reboot app** (and **Clear cache** if the UI stays blank).
+
 Exploratory notebook archived at `notebooks/italy_ai_governance_heatmap_v3.ipynb` (not used at runtime).
 
 ---
