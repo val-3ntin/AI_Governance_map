@@ -17,8 +17,9 @@ Free sources                Package                         Flat data (git)
 ─────────────               ─────────                       ───────────────
 EUR-Lex SPARQL ─┐           src/ai_gov_map/
 OECD.AI (curated)┼─► ingest/ ──► data/raw/ + regulation_data.csv
-AgID / Garante ─┤           scoring.py ──► scores.csv
-GDELT (fallback)┘           dashboard.py
+AgID / Garante ─┤           summarise/ ─► data/summaries.jsonl
+GDELT (fallback)┘           scoring.py ──► scores.csv
+                            dashboard.py
                                    │
                                    ▼
                             app.py (Streamlit)
@@ -31,9 +32,15 @@ flowchart LR
   RSS[AgID + Garante RSS] --> Ingest
   GDELT[GDELT Doc 2.0] --> Ingest
   Ingest --> CSV[regulation_data.csv]
+  CSV --> Sum[ai_gov_map.summarise]
+  Ollama[Ollama local] --> Sum
+  HF[HF Inference API] --> Sum
+  Offline[Offline rules] --> Sum
+  Sum --> JSONL[summaries.jsonl]
   Scores[scores.csv + actors.csv] --> Score[scoring.py]
   Score --> App[app.py Streamlit]
   CSV -.-> App
+  JSONL -.-> App
   GH[GitHub Actions monthly] --> Ingest
 ```
 
@@ -66,6 +73,33 @@ python -m ai_gov_map.ingest --sources eurlex agid garante
 
 Writes/merges into `data/regulation_data.csv` (schema: `id,date,title,source,url,jurisdiction,text_excerpt,fetched_at`). Per-source failures are skipped; a total failure **does not wipe** an existing CSV.
 
+### Summarise regulations (Phase 2)
+
+```bash
+# Auto: Ollama → Hugging Face → offline rules
+python -m ai_gov_map.summarise
+
+# Prefer a backend explicitly
+python -m ai_gov_map.summarise --backend ollama
+python -m ai_gov_map.summarise --backend hf          # needs HF_TOKEN
+python -m ai_gov_map.summarise --backend offline     # deterministic; CI / Cloud demo
+
+# Options
+python -m ai_gov_map.summarise --dry-run
+python -m ai_gov_map.summarise --limit 5
+python -m ai_gov_map.summarise -i data/regulation_data.csv -o data/summaries.jsonl
+```
+
+Appends JSONL lines keyed by document `id` (`summary`, `risk_tier`, `rationale`, `model`, `created_at`, plus `confidence` / `needs_review` placeholders for Phase 4). Known IDs are **skipped** on later runs (idempotent). Risk tags are closed: `unacceptable` | `high` | `limited` | `minimal`.
+
+| Backend | When | Notes |
+|---------|------|--------|
+| **Ollama** (primary) | Local `http://localhost:11434` | Tries `llama3.1:8b` / `mistral:7b`. `ollama pull llama3.1:8b` |
+| **Hugging Face** | No Ollama; token set | `HF_TOKEN` or `HUGGINGFACE_API_TOKEN`; default model `HuggingFaceH4/zephyr-7b-beta` (override with `HF_SUMMARISE_MODEL`) |
+| **Offline rules** | Neither available | Keyword heuristics; always sets `needs_review=true` |
+
+**Streamlit Cloud:** commit `data/summaries.jsonl` (seeded offline for the current feed). The live app should read cached summaries — no Ollama and no HF secret required for demo.
+
 ---
 
 ## Ingest sources (Phase 1)
@@ -89,7 +123,7 @@ Automation: [`.github/workflows/ingest.yml`](.github/workflows/ingest.yml) — c
 3. Select repo / branch `main` / Main file path: `app.py`.
 4. Deploy → paste the URL into this README and the GitHub repo **About → Website**.
 
-No secrets required for Phases 0–1.
+No secrets required for Phases 0–2 if you ship cached `data/summaries.jsonl`. Optional: set `HF_TOKEN` only if you want live HF summarisation in Actions/Cloud.
 
 ---
 
@@ -112,7 +146,8 @@ Capacity data lives in `data/scores.csv` and `data/actors.csv`. Regulatory items
 - Python 3.10+ · Streamlit · pandas · Plotly / Matplotlib / Seaborn · requests · feedparser  
 - Flat files in git (no database)  
 - GitHub Actions monthly ingest (free on public repos)  
-- Planned: Ollama/HF summaries, judgment/override log  
+- Summaries: Ollama → HF Inference API → offline rules → `data/summaries.jsonl`  
+- Planned: entity matcher, judgment/override log (Phases 3–4) 
 
 Exploratory notebook archived at `notebooks/italy_ai_governance_heatmap_v3.ipynb` (not used at runtime).
 
@@ -120,8 +155,9 @@ Exploratory notebook archived at `notebooks/italy_ai_governance_heatmap_v3.ipynb
 
 ## Limitations & next
 
-- Capacity heatmap still uses a curated static matrix; regulation CSV is separate until Phase 5 wires it into the UI.  
+- Capacity heatmap still uses a curated static matrix; regulation CSV / summaries are separate until Phase 5 wires them into the UI.  
 - OECD.AI has **no reliable public API** — Phase 1 uses a documented curated-page fallback, not scraped HTML tables.  
 - GDELT is rate-limited and noisy; treat it as a secondary signal.  
-- LLM summarisation and entity compliance mapping are on the roadmap (Phases 2–4).  
+- Seeded summaries use the offline rule backend; re-run with Ollama/HF locally for higher-quality text. Invalid model tags set `needs_review` (Phase 4).  
+- Entity compliance mapping and judgment overrides are next (Phases 3–4).  
 - See [ROADMAP.md](ROADMAP.md) for the full build path.

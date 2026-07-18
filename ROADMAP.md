@@ -107,24 +107,25 @@ GDELT   ─┘                 match.py     ─► impact_flags.csv (entities.ya
 
 ---
 
-## Phase 2 — LLM summarisation (Weeks 4–5)
+## Phase 2 — LLM summarisation (Weeks 4–5) — **IMPLEMENTED (local)**
 
 **Definition of done:** Each new row can get `summary` + `risk_tier` ∈ {unacceptable, high, limited, minimal}.
 
 ### Tasks
 
-1. `summarise.py` — primary: **Ollama** (Llama 3.1 8B or Mistral 7B); fallback: Hugging Face free Inference API.
-2. Prompt: plain-language summary (≤120 words) + single risk tag + short rationale.
-3. Idempotent: skip IDs already in `data/summaries.jsonl`.
-4. Document: “Local open-weight by default; no paid API required.”
+1. ~~`src/ai_gov_map/summarise/` — primary: **Ollama** (Llama 3.1 8B or Mistral 7B); fallback: Hugging Face free Inference API; offline rules for CI/Cloud.~~
+2. ~~Prompt: plain-language summary (≤120 words) + single risk tag + short rationale.~~
+3. ~~Idempotent: skip IDs already in `data/summaries.jsonl`.~~
+4. ~~Document: “Local open-weight by default; no paid API required.”~~
+5. ~~Seed `data/summaries.jsonl` for existing regulation rows (offline backend).~~
 
 ### Acceptance checklist
 
-- [ ] Works offline with Ollama when available
-- [ ] HF path documented for Streamlit Cloud / no local GPU
-- [ ] Cloud deploy does not crash if Ollama absent (use cached summaries in git)
+- [x] Works offline with Ollama when available (`--backend ollama|auto`)
+- [x] HF path documented for Streamlit Cloud / no local GPU (`HF_TOKEN` / `HUGGINGFACE_API_TOKEN`)
+- [x] Cloud deploy does not crash if Ollama absent (use cached `data/summaries.jsonl` in git; `--backend offline`)
 
-**Cloud note:** Prefer committing pre-computed summaries so the live site works without secrets; run LLM locally or in Actions when a token is present.
+**Cloud note:** Prefer committing pre-computed summaries so the live site works without secrets; run LLM locally or in Actions when a token is present. CLI: `python -m ai_gov_map.summarise`.
 
 ---
 
@@ -220,8 +221,8 @@ AI_Governance_map/
 ├── notebooks/          # archived exploratory work
 ├── src/ai_gov_map/
 │   ├── ingest/
+│   ├── summarise/      # Phase 2 — Ollama / HF / offline → summaries.jsonl
 │   ├── scoring.py
-│   ├── summarise.py
 │   ├── match.py
 │   ├── confidence.py
 │   └── dashboard.py
