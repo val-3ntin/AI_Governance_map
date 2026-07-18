@@ -40,10 +40,13 @@ MONITOR_COLUMNS: tuple[str, ...] = (
     "summary_tier",
     "effective_tier",
     "needs_review",
+    "overridden",
     "confidence",
     "matched_entities",
     "matched_entity_names",
 )
+
+ACCENT = "#0072CE"
 
 TIER_COLORS: dict[str, str] = {
     "unacceptable": "#8B0000",
@@ -83,6 +86,56 @@ def load_regulation_frame(path: Path | str | None = None) -> pd.DataFrame:
     if "id" not in df.columns and "regulation_id" in df.columns:
         df = df.rename(columns={"regulation_id": "id"})
     return df
+
+
+def last_fetched_at(path: Path | str | None = None) -> str | None:
+    """Return the max ``fetched_at`` ISO stamp from the regulation CSV, or None."""
+    df = load_regulation_frame(path)
+    if df.empty or "fetched_at" not in df.columns:
+        return None
+    stamps = [str(s).strip() for s in df["fetched_at"].tolist() if str(s).strip()]
+    if not stamps:
+        return None
+    return max(stamps)
+
+
+def format_refresh_label(fetched_at: str | None) -> str:
+    """Human-readable refresh label for chrome (date-only when parseable)."""
+    if not fetched_at:
+        return "unknown"
+    raw = str(fetched_at).strip()
+    # Prefer YYYY-MM-DD prefix for quiet chrome.
+    if len(raw) >= 10 and raw[4] == "-" and raw[7] == "-":
+        return raw[:10]
+    parsed = pd.to_datetime(raw, errors="coerce", utc=True)
+    if pd.isna(parsed):
+        return raw
+    return parsed.strftime("%Y-%m-%d")
+
+
+def load_overrides_table(path: Path | str | None = None) -> pd.DataFrame:
+    """Compact override log for the Feed judgement strip (id, was→now, reason)."""
+    from ai_gov_map.overrides.store import load_overrides
+
+    ov_path = Path(path) if path else DEFAULT_OVERRIDES
+    cols = ["id", "previous_tier", "new_tier", "was_now", "reason", "overridden_at"]
+    if not ov_path.is_file():
+        return pd.DataFrame(columns=cols)
+    rows: list[dict[str, Any]] = []
+    for rec in load_overrides(ov_path):
+        prev = (rec.previous_tier or "").strip().lower()
+        nxt = (rec.new_tier or "").strip().lower()
+        rows.append(
+            {
+                "id": rec.id,
+                "previous_tier": prev,
+                "new_tier": nxt,
+                "was_now": f"{prev} → {nxt}",
+                "reason": rec.reason or "",
+                "overridden_at": rec.overridden_at or "",
+            }
+        )
+    return pd.DataFrame(rows, columns=cols)
 
 
 def _summaries_index(path: Path | str | None = None) -> dict[str, dict[str, Any]]:
@@ -201,6 +254,7 @@ def build_monitor_frame(
                 "summary_tier": summary_tier,
                 "effective_tier": (tier or "").strip().lower(),
                 "needs_review": bool(meta.get("needs_review", False)),
+                "overridden": doc_id in overrides_index,
                 "confidence": meta.get("confidence"),
                 "matched_entities": ";".join(entity_ids),
                 "matched_entity_names": "; ".join(names),
@@ -278,6 +332,9 @@ def dataframe_to_json(df: pd.DataFrame) -> str:
         nr = rec.get("needs_review")
         if isinstance(nr, (bool, int)):
             rec["needs_review"] = bool(nr)
+        ov = rec.get("overridden")
+        if isinstance(ov, (bool, int)):
+            rec["overridden"] = bool(ov)
     return json.dumps(records, ensure_ascii=False, indent=2)
 
 
@@ -353,20 +410,168 @@ def build_timeline_figure(df: pd.DataFrame) -> go.Figure:
         height=420,
         template="plotly_white",
         margin=dict(l=40, r=20, t=50, b=40),
+        colorway=[ACCENT],
+    )
+    return fig
+
+
+def build_heatmap_figure(
+    df_heat: pd.DataFrame,
+    pillar_labels: dict[str, str] | None = None,
+    *,
+    flag_cells: list[tuple[str, int]] | None = None,
+) -> go.Figure:
+    """Plotly heatmap for the Capacity Matrix (lazy plotly import)."""
+    import plotly.graph_objects as go
+
+    labels = pillar_labels or {}
+    if df_heat is None or df_heat.empty:
+        fig = go.Figure()
+        fig.update_layout(
+            title="No capacity data",
+            height=360,
+            template="plotly_white",
+        )
+        return fig
+
+    x_labels = [labels.get(c, c) for c in df_heat.columns]
+    y_labels = list(df_heat.index)
+    z = df_heat.values.tolist()
+    text = [[f"{v:.1f}" for v in row] for row in df_heat.values]
+
+    fig = go.Figure(
+        data=go.Heatmap(
+            z=z,
+            x=x_labels,
+            y=y_labels,
+            text=text,
+            texttemplate="%{text}",
+            textfont={"size": 11, "color": "#0D1B2A"},
+            colorscale=[
+                [0.0, "#F7F8FA"],
+                [0.33, "#B9D1EA"],
+                [0.66, "#4A88C0"],
+                [1.0, "#0C2C52"],
+            ],
+            zmin=0,
+            zmax=3,
+            colorbar=dict(
+                tickvals=[0, 1, 2, 3],
+                ticktext=["0 — Gap", "1 — Weak", "2 — Moderate", "3 — Strong"],
+                thickness=14,
+            ),
+            hovertemplate="<b>%{y}</b><br>%{x}: %{z:.2f}<extra></extra>",
+            xgap=3,
+            ygap=3,
+        )
+    )
+
+    if flag_cells:
+        flag_x: list[str] = []
+        flag_y: list[str] = []
+        for actor, pillar_idx in flag_cells:
+            if actor not in df_heat.index:
+                continue
+            if pillar_idx < 0 or pillar_idx >= len(df_heat.columns):
+                continue
+            flag_x.append(x_labels[pillar_idx])
+            flag_y.append(actor)
+        if flag_x:
+            fig.add_trace(
+                go.Scatter(
+                    x=flag_x,
+                    y=flag_y,
+                    mode="markers",
+                    marker=dict(
+                        size=9,
+                        color="#E63946",
+                        line=dict(width=1.2, color="white"),
+                    ),
+                    name="Intervention priority",
+                    hoverinfo="skip",
+                    showlegend=True,
+                )
+            )
+
+    fig.update_layout(
+        title="Dynamic capacity matrix",
+        height=max(420, 28 * len(y_labels) + 120),
+        template="plotly_white",
+        margin=dict(l=20, r=20, t=50, b=20),
+        xaxis=dict(side="top", tickfont=dict(size=11)),
+        yaxis=dict(autorange="reversed", tickfont=dict(size=11)),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
+    )
+    return fig
+
+
+def build_decay_bar_figure(
+    series: pd.Series,
+    *,
+    title: str,
+    subtitle: str = "",
+) -> go.Figure:
+    """Plotly horizontal bar chart for Decay Simulation (lazy plotly import)."""
+    import plotly.graph_objects as go
+
+    if series is None or series.empty:
+        fig = go.Figure()
+        fig.update_layout(title="No actors to display", height=360, template="plotly_white")
+        return fig
+
+    values = series.astype(float)
+    colors = []
+    for i, val in enumerate(values.values):
+        if i == 0:
+            colors.append("#E63946")
+        elif val < 1.0:
+            colors.append("#F5A623")
+        else:
+            colors.append(ACCENT)
+
+    fig = go.Figure(
+        data=go.Bar(
+            x=values.values,
+            y=list(values.index),
+            orientation="h",
+            marker_color=colors,
+            text=[f"{v:.2f}" for v in values.values],
+            textposition="outside",
+            cliponaxis=False,
+            hovertemplate="<b>%{y}</b><br>Score: %{x:.2f}<extra></extra>",
+        )
+    )
+    fig.add_vline(x=1.0, line_dash="dash", line_color="#94A3B8", annotation_text="Weak (1.0)")
+    fig.add_vline(x=2.0, line_dash="dot", line_color="#64748B", annotation_text="Moderate (2.0)")
+    full_title = title if not subtitle else f"{title}<br><sup>{subtitle}</sup>"
+    fig.update_layout(
+        title=full_title,
+        xaxis=dict(range=[0, 3.5], title="Simulated score", showgrid=False),
+        yaxis=dict(autorange="reversed", title=""),
+        height=max(360, 36 * len(values) + 100),
+        template="plotly_white",
+        margin=dict(l=20, r=40, t=70, b=40),
+        showlegend=False,
     )
     return fig
 
 
 __all__ = [
+    "ACCENT",
     "MONITOR_COLUMNS",
     "RISK_TIERS",
     "TIER_COLORS",
+    "build_decay_bar_figure",
+    "build_heatmap_figure",
     "build_monitor_frame",
     "build_timeline_figure",
     "dataframe_to_csv",
     "dataframe_to_json",
     "filter_actors_by_group",
     "filter_monitor",
+    "format_refresh_label",
+    "last_fetched_at",
     "list_tracked_entities",
+    "load_overrides_table",
     "load_regulation_frame",
 ]

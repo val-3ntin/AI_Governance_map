@@ -53,8 +53,8 @@ def _import_plotly_go():
 
 # ─── PAGE CONFIG ────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Italy AI Governance Intelligence",
-    page_icon="🇮🇹",
+    page_title="Italy AI Governance Monitor",
+    page_icon="◇",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -64,14 +64,58 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=DM+Mono:wght@400;500&display=swap');
 
+:root {
+    --accent: #0072CE;
+    --ink: #0D1B2A;
+    --muted: #7A8EA6;
+    --line: #DDE2EA;
+    --bg: #F7F8FA;
+}
+
 /* ── Reset & base ── */
 html, body, [class*="css"] {
     font-family: 'Sora', system-ui, sans-serif;
-    color: #0D1B2A;
-    background-color: #F7F8FA;
+    color: var(--ink);
+    background-color: var(--bg);
 }
-.stApp { background-color: #F7F8FA; }
-.block-container { padding: 0 2rem 3rem 2rem; max-width: 1400px; }
+.stApp { background-color: var(--bg); }
+.block-container { padding: 0 2rem 2.5rem 2rem; max-width: 1400px; }
+
+/* ── Quiet global chrome ── */
+.app-chrome {
+    padding: 18px 0 14px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 8px;
+}
+.app-chrome-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+}
+.app-chrome-prop {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+    max-width: 720px;
+    line-height: 1.5;
+}
+.app-chrome-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    margin-top: 8px;
+    letter-spacing: .04em;
+}
+.app-footer {
+    margin-top: 36px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+}
+.app-footer strong { color: #4A5E75; font-weight: 600; }
 
 /* ── Sidebar ── */
 section[data-testid="stSidebar"] {
@@ -105,15 +149,15 @@ section[data-testid="stSidebar"] p { color: #7A99B8 !important; font-size: 12px 
 }
 .stTabs [aria-selected="true"] {
     color: #0D1B2A !important;
-    border-bottom: 2px solid #0072CE !important;
+    border-bottom: 2px solid var(--accent) !important;
     background: transparent !important;
 }
 
 /* ── Metric tiles ── */
 .metric-tile {
     background: #FFFFFF;
-    border: 1px solid #DDE2EA;
-    border-top: 3px solid #0072CE;
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--accent);
     padding: 18px 20px 16px;
     border-radius: 2px;
 }
@@ -145,8 +189,8 @@ section[data-testid="stSidebar"] p { color: #7A99B8 !important; font-size: 12px 
 /* ── Strategy cards ── */
 .s-card {
     background: #FFFFFF;
-    border: 1px solid #DDE2EA;
-    border-left: 3px solid #0072CE;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
     padding: 22px 24px;
     margin-bottom: 16px;
     border-radius: 2px;
@@ -164,7 +208,7 @@ section[data-testid="stSidebar"] p { color: #7A99B8 !important; font-size: 12px 
     border-radius: 2px;
     margin-bottom: 10px;
 }
-.badge.go   { background: #E8F4FD; color: #0072CE; }
+.badge.go   { background: #E8F4FD; color: var(--accent); }
 .badge.stop { background: #FDECEE; color: #E63946; }
 .badge.caution { background: #FEF6E8; color: #C4830A; }
 
@@ -222,7 +266,7 @@ section[data-testid="stSidebar"] p { color: #7A99B8 !important; font-size: 12px 
     font-size: 11px;
     letter-spacing: .2em;
     text-transform: uppercase;
-    color: #0072CE;
+    color: var(--accent);
     margin-bottom: 12px;
 }
 .hero-title {
@@ -233,7 +277,7 @@ section[data-testid="stSidebar"] p { color: #7A99B8 !important; font-size: 12px 
     max-width: 700px;
     margin-bottom: 14px;
 }
-.hero-title span { color: #0072CE; }
+.hero-title span { color: var(--accent); }
 .hero-body {
     font-size: 14px;
     color: #7A99B8;
@@ -298,7 +342,7 @@ section[data-testid="stSidebar"] p { color: #7A99B8 !important; font-size: 12px 
 /* ── Info callout ── */
 .callout {
     background: #EEF6FF;
-    border-left: 3px solid #0072CE;
+    border-left: 3px solid var(--accent);
     padding: 12px 16px;
     font-size: 12.5px;
     color: #1A3A5C;
@@ -315,18 +359,41 @@ section[data-testid="stSidebar"] p { color: #7A99B8 !important; font-size: 12px 
 def _cached_load_data():
     return load_data()
 
+
+@st.cache_data(show_spinner=False)
+def _cached_last_refresh():
+    from ai_gov_map.dashboard import format_refresh_label, last_fetched_at
+
+    return format_refresh_label(last_fetched_at())
+
+
 structured_data, _weights, ACTOR_META = _cached_load_data()
 pillars = PILLARS
 pillar_labels = PILLAR_LABELS
 actors = list(structured_data.keys())
+_refresh_label = _cached_last_refresh()
+
+# Quiet global header (all pages)
+st.markdown(
+    f"""
+    <div class='app-chrome'>
+        <div class='app-chrome-name'>Italy AI Governance Monitor</div>
+        <div class='app-chrome-prop'>
+            Free EU/Italy AI regulation signals with capacity mapping and an auditable judgement layer.
+        </div>
+        <div class='app-chrome-meta'>Last data refresh · {_refresh_label}</div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 # ─── SIDEBAR ────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("""
     <div style='padding: 20px 0 10px;'>
-        <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#0072CE;margin-bottom:6px;'>Intelligence Engine</div>
+        <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#0072CE;margin-bottom:6px;'>Monitor</div>
         <div style='font-size:16px;font-weight:700;color:#F7F8FA;line-height:1.3;margin-bottom:4px;'>Italy AI Governance</div>
-        <div style='font-size:11px;color:#4A6680;margin-bottom:20px;'>2024–2026 National Strategy</div>
+        <div style='font-size:11px;color:#4A6680;margin-bottom:20px;'>Regulatory feed · capacity map</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -362,13 +429,14 @@ with st.sidebar:
 page = st.sidebar.radio(
     "NAVIGATION",
     [
+        "Regulatory Feed",
         "Briefing",
         "Stakeholder Map",
         "Capacity Matrix",
         "Decay Simulation",
         "Playbooks",
-        "Regulatory Feed",
     ],
+    index=0,
     label_visibility="collapsed",
 )
 
@@ -396,12 +464,13 @@ if page in _SCORE_PAGES:
 if page == "Briefing":
     st.markdown("""
     <div class='hero-wrap'>
-        <div class='hero-eyebrow'>Strategic Intelligence Report · Italy · AI Governance · 2024–2026</div>
+        <div class='hero-eyebrow'>Strategic context · Italy · EU AI Act</div>
         <div class='hero-title'>Where does <span>real</span> AI<br>governance power sit<br>in Italy?</div>
         <div class='hero-body'>
-            This engine maps 12 institutional actors against 5 EU AI Act pillars,
-            quantifies their structural decay over time, and surfaces the
-            three highest-leverage intervention vectors for non-profit capital deployment.
+            Maps 12 institutional actors against 5 EU AI Act pillars,
+            quantifies structural decay over time, and surfaces
+            high-leverage intervention vectors — alongside a live regulatory feed
+            with human overrides.
         </div>
         <div class='hero-stat-row'>
             <div class='hero-stat'>
@@ -664,74 +733,36 @@ elif page == "Stakeholder Map":
 # PAGE 2 · CAPACITY MATRIX
 # ═══════════════════════════════════════════════════════════════════════════
 elif page == "Capacity Matrix":
-    plt, sns, LinearSegmentedColormap = _import_matplotlib()
+    from ai_gov_map.dashboard import build_heatmap_figure
+
     st.markdown("""
-    <div style='padding:24px 0 16px;'>
+    <div style='padding:16px 0 12px;'>
         <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#7A8EA6;
                     text-transform:uppercase;margin-bottom:6px;'>Full Cross-Reference</div>
         <div style='font-size:22px;font-weight:700;color:#0D1B2A;'>Dynamic Capacity Matrix</div>
         <div style='font-size:13px;color:#7A8EA6;margin-top:4px;'>
-            All actors × all pillars. Red dots mark priority non-profit intervention cells.
+            All actors × all pillars. Red markers flag priority intervention cells.
             Scores update with sidebar simulation parameters.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    fig2, ax2 = plt.subplots(figsize=(12, 7), facecolor='#FFFFFF')
-    ax2.set_facecolor('#FFFFFF')
-
-    prof_cmap = LinearSegmentedColormap.from_list(
-        'intel_blue', ['#F7F8FA', '#B9D1EA', '#4A88C0', '#0C2C52'], N=256
-    )
-
     filtered_heat = df_heat.loc[[a for a in actors if ACTOR_META[a]['group'] in selected_group]]
-
-    sns.heatmap(
-        filtered_heat,
-        ax=ax2,
-        cmap=prof_cmap,
-        vmin=0, vmax=3,
-        annot=True,
-        fmt='.1f',
-        annot_kws={'size': 11, 'weight': 'bold', 'color': '#0D1B2A'},
-        linewidths=2.5,
-        linecolor='#F7F8FA',
-        cbar_kws={'shrink': 0.6, 'pad': 0.02},
-    )
-
-    ax2.xaxis.tick_top()
-    ax2.xaxis.set_label_position('top')
-    ax2.tick_params(left=False, top=False, bottom=False, length=0)
-
-    clean_headers = [pillar_labels[p] for p in pillars]
-    ax2.set_xticklabels(clean_headers, rotation=0, ha='center', fontsize=10,
-                         fontweight='600', color='#333333', fontfamily='DejaVu Sans')
-    ax2.set_yticklabels(filtered_heat.index, rotation=0, fontsize=10,
-                         color='#333333', fontfamily='DejaVu Sans')
-
-    # Intervention flags
     flag_actors = ['SME Networks (PMI)', 'CDP', 'Fondazione Leonardo', 'Lombardy Region']
     flag_pillars = [2, 0, 2, 2]
-    for fa, fp in zip(flag_actors, flag_pillars):
-        if fa in filtered_heat.index:
-            r = list(filtered_heat.index).index(fa)
-            ax2.plot(fp + 0.82, r + 0.18, marker='o', markersize=7,
-                     color='#E63946', markeredgecolor='white', markeredgewidth=1.2, zorder=5)
+    flag_cells = list(zip(flag_actors, flag_pillars))
 
-    cbar = ax2.collections[0].colorbar
-    cbar.ax.tick_params(labelsize=9)
-    cbar.set_ticks([0, 1, 2, 3])
-    cbar.set_ticklabels(['0 — Gap', '1 — Weak', '2 — Moderate', '3 — Strong'])
-
-    plt.tight_layout(pad=1.5)
-    st.pyplot(fig2)
+    st.plotly_chart(
+        build_heatmap_figure(filtered_heat, pillar_labels, flag_cells=flag_cells),
+        use_container_width=True,
+    )
 
     st.markdown(f"""
     <div class='callout'>
-        <strong>Reading guide:</strong> Scores combine statutory mandate, activity type weight 
-        (ongoing enforcement = 1.0 → expired = 0.1), and geographic reach, then decayed by 
-        {(1-decay_base)*100:.0f}% per year of inactivity from the simulation horizon ({sim_year}). 
-        Red dots mark cells where non-profit intervention can fill a structural gap with high leverage.
+        <strong>Reading guide:</strong> Scores combine statutory mandate, activity type weight
+        (ongoing enforcement = 1.0 → expired = 0.1), and geographic reach, then decayed by
+        {(1-decay_base)*100:.0f}% per year of inactivity from the simulation horizon ({sim_year}).
+        Red markers flag cells where non-profit intervention can fill a structural gap with high leverage.
     </div>
     """, unsafe_allow_html=True)
 
@@ -740,9 +771,11 @@ elif page == "Capacity Matrix":
 # PAGE 3 · DECAY SIMULATION
 # ═══════════════════════════════════════════════════════════════════════════
 elif page == "Decay Simulation":
+    from ai_gov_map.dashboard import build_decay_bar_figure
+
     plt = _import_pyplot()
     st.markdown(f"""
-    <div style='padding:24px 0 8px;'>
+    <div style='padding:16px 0 8px;'>
         <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#7A8EA6;
                     text-transform:uppercase;margin-bottom:6px;'>Structural Decay Analysis</div>
         <div style='font-size:22px;font-weight:700;color:#0D1B2A;margin-bottom:4px;'>Capacity Delta Profile</div>
@@ -773,62 +806,28 @@ elif page == "Decay Simulation":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    BG = '#1E293B'
-    TEXT_PRIMARY = '#F8FAFC'
-    TEXT_SEC = '#CBD5E1'
-    BAR_NORMAL = '#38BDF8'
-    BAR_ALERT  = '#FB7185'
-    BAR_AMBER  = '#FBBF24'
-
-    plt.rcParams['font.sans-serif'] = ['Arial', 'Helvetica', 'DejaVu Sans']
-    fig, ax = plt.subplots(figsize=(10, max(5, len(s_series) * 0.65 + 1)), facecolor=BG)
-    ax.set_facecolor(BG)
-
-    def bar_color(i, val):
-        if i == 0: return BAR_ALERT
-        if val < 1.0: return BAR_AMBER
-        return BAR_NORMAL
-
-    colors = [bar_color(i, v) for i, v in enumerate(s_series.values)]
-    bars = ax.barh(s_series.index, s_series.values, color=colors, height=0.55)
-
-    for bar, val in zip(bars, s_series.values):
-        ax.text(val + 0.05, bar.get_y() + bar.get_height() / 2,
-                f'{val:.2f}', va='center', fontweight='bold',
-                color=bar.get_facecolor(), fontsize=10.5)
-
-    # Threshold lines
-    ax.axvline(1.0, color='#94A3B8', lw=1, ls='--', alpha=0.5, label='Weak threshold (1.0)')
-    ax.axvline(2.0, color='#64748B', lw=1, ls=':', alpha=0.5, label='Moderate threshold (2.0)')
-
-    ax.set_xlim(0, 3.5)
-    for spine in ax.spines.values(): spine.set_visible(False)
-    ax.tick_params(axis='both', length=0)
-    ax.set_xticks([])
-    ax.set_yticklabels(s_series.index, fontsize=10.5, fontweight='500', color=TEXT_SEC)
-    ax.legend(loc='lower right', fontsize=9, framealpha=0,
-              labelcolor=TEXT_SEC, facecolor=BG)
-
-    fig.text(0.02, 0.97, f"Structural Decay Simulation: {pillar_labels[selected_pillar]}",
-             fontsize=14, fontweight='bold', color=TEXT_PRIMARY, va='top')
-    fig.text(0.02, 0.92,
-             f"Simulated capacity in {sim_year} · Decay factor {decay_base:.2f} · "
-             f"System mean: {s_series.mean():.2f}",
-             fontsize=10, color=TEXT_SEC, va='top')
-
-    plt.tight_layout(rect=[0, 0, 1, 0.88])
-    st.pyplot(fig)
+    st.plotly_chart(
+        build_decay_bar_figure(
+            s_series,
+            title=f"Structural Decay Simulation: {pillar_labels[selected_pillar]}",
+            subtitle=(
+                f"Simulated capacity in {sim_year} · Decay factor {decay_base:.2f} · "
+                f"System mean: {s_series.mean():.2f}"
+            ),
+        ),
+        use_container_width=True,
+    )
 
     st.markdown("""
     <div class='callout'>
-        <strong>How to read this:</strong> Amber bars represent actors scoring below 1.0 — 
-        structural gaps where mandate exists on paper but enforcement or activity has been absent 
-        long enough to decay below functional threshold. These are the highest-priority targets 
+        <strong>How to read this:</strong> Amber bars represent actors scoring below 1.0 —
+        structural gaps where mandate exists on paper but enforcement or activity has been absent
+        long enough to decay below functional threshold. These are the highest-priority targets
         for non-profit capacity-building investment.
     </div>
     """, unsafe_allow_html=True)
 
-    # Trajectory chart (multi-year)
+    # Trajectory chart (multi-year) — keep Matplotlib for the line chart
     st.markdown("""
     <div class='section-rule'>
         <span class='label'>Decay Trajectories 2024–2030</span><div class='line'></div>
@@ -974,10 +973,11 @@ elif page == "Regulatory Feed":
         dataframe_to_json,
         filter_monitor,
         list_tracked_entities,
+        load_overrides_table,
     )
 
     st.markdown("""
-    <div style='padding:24px 0 8px;'>
+    <div style='padding:12px 0 4px;'>
         <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#7A8EA6;
                     text-transform:uppercase;margin-bottom:6px;'>Compliance Monitor</div>
         <div style='font-size:22px;font-weight:700;color:#0D1B2A;margin-bottom:4px;'>Regulatory Feed</div>
@@ -988,6 +988,15 @@ elif page == "Regulatory Feed":
     </div>
     """, unsafe_allow_html=True)
 
+    with st.expander("How to read this", expanded=False):
+        st.markdown(
+            "Each row is a free-source regulation item. **Effective tier** is the human override "
+            "when one exists, otherwise the auto summary tag (`unacceptable` / `high` / `limited` / "
+            "`minimal`). **Needs review** flags low-confidence or heuristic tags; **Overridden** marks "
+            "rows corrected in `overrides.json`. Filter by entity, tier, or text, then export the "
+            "exact filtered view as CSV or JSON."
+        )
+
     @st.cache_data(show_spinner=False)
     def _cached_monitor_frame():
         return build_monitor_frame()
@@ -996,8 +1005,37 @@ elif page == "Regulatory Feed":
     def _cached_entities():
         return list_tracked_entities()
 
+    @st.cache_data(show_spinner=False)
+    def _cached_overrides_table():
+        return load_overrides_table()
+
     monitor_df = _cached_monitor_frame()
     tracked = _cached_entities()
+    overrides_df = _cached_overrides_table()
+
+    # Judgement strip — interview framing
+    n_overrides = len(overrides_df)
+    with st.expander(
+        f"{n_overrides} human overrides — click to see why",
+        expanded=False,
+    ):
+        st.caption(
+            "Seeded disagreements for interview walkthrough — where offline/LLM tags were wrong. "
+            "See README for narrative examples."
+        )
+        if overrides_df.empty:
+            st.info("No overrides loaded.")
+        else:
+            st.dataframe(
+                overrides_df[["id", "was_now", "reason"]],
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "id": st.column_config.TextColumn("id", width="medium"),
+                    "was_now": st.column_config.TextColumn("was → now", width="small"),
+                    "reason": st.column_config.TextColumn("reason", width="large"),
+                },
+            )
 
     if monitor_df.empty:
         st.info(
@@ -1031,68 +1069,99 @@ elif page == "Regulatory Feed":
                 placeholder="e.g. AI Act, AgID, biometric…",
             )
 
-        filtered = filter_monitor(
-            monitor_df,
-            entity_ids=selected_entities or None,
-            risk_tiers=selected_tiers if selected_tiers else None,
-            query=search_q or None,
-        )
-
-        n_total = len(monitor_df)
-        n_show = len(filtered)
-        review_n = int(filtered["needs_review"].sum()) if n_show and "needs_review" in filtered.columns else 0
-
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Showing", f"{n_show} / {n_total}")
-        m2.metric("Needs review", review_n)
-        m3.metric(
-            "High / unacceptable",
-            int(filtered["effective_tier"].isin(["high", "unacceptable"]).sum()) if n_show else 0,
-        )
-        m4.metric("Sources", filtered["source"].nunique() if n_show else 0)
-
-        st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
-        st.plotly_chart(build_timeline_figure(filtered), use_container_width=True)
-
-        if filtered.empty:
-            st.warning("No items match the current filters. Clear entity filters or broaden search.")
-        else:
-            display_cols = [
-                "date",
-                "title",
-                "source",
-                "effective_tier",
-                "needs_review",
-                "matched_entity_names",
-                "jurisdiction",
-                "url",
-            ]
-            st.dataframe(
-                filtered[display_cols],
-                use_container_width=True,
-                hide_index=True,
-                column_config={
-                    "url": st.column_config.LinkColumn("url"),
-                    "needs_review": st.column_config.CheckboxColumn("needs_review"),
-                },
+        with st.spinner("Updating feed…"):
+            filtered = filter_monitor(
+                monitor_df,
+                entity_ids=selected_entities or None,
+                risk_tiers=selected_tiers if selected_tiers else None,
+                query=search_q or None,
             )
 
-        csv_bytes = dataframe_to_csv(filtered).encode("utf-8")
-        json_bytes = dataframe_to_json(filtered).encode("utf-8")
-        d1, d2, _ = st.columns([1, 1, 2])
-        with d1:
-            st.download_button(
-                "Download CSV",
-                data=csv_bytes,
-                file_name="regulatory_feed_filtered.csv",
-                mime="text/csv",
-                use_container_width=True,
+            n_total = len(monitor_df)
+            n_show = len(filtered)
+            review_n = (
+                int(filtered["needs_review"].sum())
+                if n_show and "needs_review" in filtered.columns
+                else 0
             )
-        with d2:
-            st.download_button(
-                "Download JSON",
-                data=json_bytes,
-                file_name="regulatory_feed_filtered.json",
-                mime="application/json",
-                use_container_width=True,
+            overridden_n = (
+                int(filtered["overridden"].sum())
+                if n_show and "overridden" in filtered.columns
+                else 0
             )
+
+            m1, m2, m3, m4, m5 = st.columns(5)
+            m1.metric("Showing", f"{n_show} / {n_total}")
+            m2.metric("Needs review", review_n)
+            m3.metric("Overridden", overridden_n)
+            m4.metric(
+                "High / unacceptable",
+                int(filtered["effective_tier"].isin(["high", "unacceptable"]).sum())
+                if n_show
+                else 0,
+            )
+            m5.metric("Sources", filtered["source"].nunique() if n_show else 0)
+
+            st.plotly_chart(build_timeline_figure(filtered), use_container_width=True)
+
+            if filtered.empty:
+                st.warning("No matches — clear filters")
+            else:
+                display_cols = [
+                    "date",
+                    "title",
+                    "source",
+                    "effective_tier",
+                    "needs_review",
+                    "overridden",
+                    "matched_entity_names",
+                    "jurisdiction",
+                    "url",
+                ]
+                st.dataframe(
+                    filtered[display_cols],
+                    use_container_width=True,
+                    hide_index=True,
+                    height=420,
+                    column_config={
+                        "url": st.column_config.LinkColumn("url", width="medium"),
+                        "title": st.column_config.TextColumn("title", width="large"),
+                        "effective_tier": st.column_config.TextColumn(
+                            "effective_tier", width="small"
+                        ),
+                        "needs_review": st.column_config.CheckboxColumn("needs_review"),
+                        "overridden": st.column_config.CheckboxColumn("overridden"),
+                    },
+                )
+
+            csv_bytes = dataframe_to_csv(filtered).encode("utf-8")
+            json_bytes = dataframe_to_json(filtered).encode("utf-8")
+            d1, d2, _ = st.columns([1, 1, 2])
+            with d1:
+                st.download_button(
+                    "Download CSV",
+                    data=csv_bytes,
+                    file_name="regulatory_feed_filtered.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                )
+            with d2:
+                st.download_button(
+                    "Download JSON",
+                    data=json_bytes,
+                    file_name="regulatory_feed_filtered.json",
+                    mime="application/json",
+                    use_container_width=True,
+                )
+
+# ─── FOOTER (all pages) ─────────────────────────────────────────────────────
+st.markdown(
+    f"""
+    <div class='app-footer'>
+        <strong>Sources</strong> · EUR-Lex · OECD.AI (curated) · AgID / Garante RSS · GDELT
+        &nbsp;·&nbsp; <strong>Last ingest</strong> · {_refresh_label}
+        &nbsp;·&nbsp; Not legal advice — research / portfolio demo only.
+    </div>
+    """,
+    unsafe_allow_html=True,
+)

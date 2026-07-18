@@ -4,7 +4,7 @@
 
 Italy’s AI governance is fragmented: enforcement concentrated in Rome, an SME-heavy economy, and large digital funds (PNRR/CDP) with limited AI-risk conditionality. This project quantifies institutional capacity across **12 actors × 5 pillars**, applies a dormancy-decay model, and surfaces intervention leverage — then wires a free/open ingest → summarise → match → review loop for compliance monitoring.
 
-> **Live demo:** ** https://aigovernancemap-4fm5ttkoup6cnux9izvopq.streamlit.app **  
+> **Live demo:** [https://aigovernancemap-4fm5ttkoup6cnux9izvopq.streamlit.app/](https://aigovernancemap-4fm5ttkoup6cnux9izvopq.streamlit.app/)  
 > **Roadmap:** [ROADMAP.md](ROADMAP.md) · **Changelog:** [CHANGELOG.md](CHANGELOG.md)  
 > **Regulation feed:** `data/regulation_data.csv` — refreshed **monthly** via GitHub Actions (and on demand with `workflow_dispatch`)
 
@@ -74,13 +74,13 @@ flowchart LR
 
 ## Screenshots / GIF
 
-> **Placeholder** — add after Streamlit Cloud deploy (or a local recording):
->
-> 1. Capacity Matrix heatmap (12 × 5)  
-> 2. Regulatory Feed timeline + filters  
-> 3. Optional 15–30s GIF: filter by entity → export CSV  
->
-> Drop files under `docs/` (e.g. `docs/feed.png`) and link them here.
+Optional captures under `docs/` after a local or Cloud session:
+
+1. Regulatory Feed (default landing) — timeline + filters  
+2. Capacity Matrix heatmap  
+3. Optional short GIF: filter by entity → export CSV  
+
+Link files here when available (e.g. `docs/feed.png`).
 
 ---
 
@@ -185,12 +185,12 @@ Full seeded log: eight overrides in [`data/overrides.json`](data/overrides.json)
 
 | Page | Purpose |
 |------|---------|
+| **Regulatory Feed** (default) | Timeline + entity/tier filters + overrides strip + CSV/JSON export |
 | Briefing | Country context + strategic framing |
 | Stakeholder Map | Geographic distribution of actors |
 | Capacity Matrix | Heatmap across EU AI Act–aligned pillars |
 | Decay Simulation | Obsolescence over a chosen horizon |
 | Playbooks | Intervention vectors for non-profit capital |
-| **Regulatory Feed** | Timeline + entity/tier filters + CSV/JSON export |
 
 Capacity data: `data/scores.csv`, `data/actors.csv`. Regulatory monitor helpers: [`src/ai_gov_map/dashboard.py`](src/ai_gov_map/dashboard.py).
 
@@ -211,14 +211,11 @@ CI: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — `pytest` on push/
 
 ---
 
-## Live demo (placeholder)
+## Live demo
 
-1. Push / merge the phase stack to GitHub (public).
-2. Go to [share.streamlit.io](https://share.streamlit.io) → **New app**.
-3. Select repo / branch `main` / Main file path: `app.py`.
-4. Deploy → paste the URL into this README and the GitHub repo **About → Website**.
+**App:** [https://aigovernancemap-4fm5ttkoup6cnux9izvopq.streamlit.app/](https://aigovernancemap-4fm5ttkoup6cnux9izvopq.streamlit.app/)
 
-No secrets required for Phases 0–6 if you ship cached `data/summaries.jsonl`, `data/impact_flags.csv`, and `data/overrides.json`.
+Deploy / reboot on [share.streamlit.io](https://share.streamlit.io): repo `main` · Main file `app.py` · **Python 3.12** in Advanced settings. No secrets required if cached `data/summaries.jsonl`, `data/impact_flags.csv`, and `data/overrides.json` stay in git.
 
 ---
 
@@ -249,7 +246,6 @@ Honest constraints (interview framing — not a legal product):
 - **Seeded summaries use offline rules** — good for Cloud/demo determinism; re-run with Ollama/HF locally for higher-quality text. Heuristics + invalid tags set `needs_review`.
 - **Impact flags are heuristic** — keyword/taxonomy overlap, not a legal opinion. Entities are hypothetical.
 - **Overrides are analyst judgements for demo** — eight seeded disagreements show where rules over/under-fired; not formal classifications.
-- **No live Streamlit URL yet** — deploy is a manual Cloud step after the branch stack lands on `main`.
 - **What I'd improve next:** (1) diff-aware ingest PRs instead of bot commits on `main`, (2) light embedding retrieval for entity match, (3) capacity score provenance from regulation events, (4) screenshots + a short Loom walkthrough of override examples.
 
 See [ROADMAP.md](ROADMAP.md) for the full build path and remaining gate checklist.

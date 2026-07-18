@@ -7,10 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+#### UI professional polish (`ui/professional-polish`)
+- Quiet global chrome: product name, value prop, cached last `fetched_at` refresh stamp, footer (sources · ingest · not legal advice)
+- Regulatory Feed as default landing; `overridden` column; “How to read this” expander; human-overrides judgement strip
+- Plotly Capacity Matrix heatmap + Decay bar chart (lazy imports); Feed path still skips scoring/heatmap
+- Dashboard helpers: `last_fetched_at`, `format_refresh_label`, `load_overrides_table`, `build_heatmap_figure`, `build_decay_bar_figure`
+
 ### Planned
 
-- Streamlit Community Cloud live demo URL in README + GitHub About
-- Merge Phase 1–6 branch stack to `main`; enable monthly ingest Action on public `main`
+- Optional screenshots under `docs/`
+- Enable monthly ingest Action on public `main` if not already scheduled
 
 ## [0.2.0] — 2026-07-18
 
