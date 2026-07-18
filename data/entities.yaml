@@ -1,0 +1,158 @@
+# Hypothetical / anonymised organisation profiles for Phase 3 compliance mapping.
+# These are NOT real organisations — demo fixtures only (Italy / EU AI Act framing).
+meta:
+  hypothetical: true
+  description: >
+    Anonymised sector profiles used by ai_gov_map.match to flag regulatory
+    items that may affect tracked entities. Labels and IDs are fictional.
+
+entities:
+  - id: hyp-health-01
+    display_name: "Northern Care Network (hypothetical)"
+    sector: healthcare
+    ai_use_cases:
+      - clinical_decision_support
+      - medical_imaging
+    keywords:
+      - healthcare
+      - sanità
+      - sanita
+      - medical
+      - ausl
+      - health
+      - medical device
+      - medical devices
+      - clinical
+    risk_exposure: high
+    notes: "Hypothetical regional health provider exploring AI diagnostics."
+
+  - id: hyp-hr-02
+    display_name: "Alpine Talent Platforms (hypothetical)"
+    sector: hr_recruitment
+    ai_use_cases:
+      - recruitment_screening
+      - employee_monitoring
+    keywords:
+      - recruitment
+      - hiring
+      - employment
+      - lavoro
+      - hr
+      - workplace
+      - cv screening
+      - start-up
+      - startup
+    risk_exposure: high
+    notes: "Hypothetical HR-tech vendor selling CV ranking and workplace analytics."
+
+  - id: hyp-bio-03
+    display_name: "Mediterraneo Identity Labs (hypothetical)"
+    sector: biometrics
+    ai_use_cases:
+      - biometric_identification
+      - facial_recognition
+    keywords:
+      - biometric
+      - biometrics
+      - facial recognition
+      - remote biometric
+      - identity
+      - character.ai
+      - privacy
+    risk_exposure: unacceptable
+    notes: "Hypothetical biometrics vendor; maps to prohibited / high-risk ID use-cases."
+
+  - id: hyp-fin-04
+    display_name: "Po Valley Credit Co-op (hypothetical)"
+    sector: finance
+    ai_use_cases:
+      - credit_scoring
+      - fraud_detection
+    keywords:
+      - credit
+      - credit scor
+      - banking
+      - finance
+      - financial
+      - fraud
+      - data breach
+      - wind tre
+    risk_exposure: high
+    notes: "Hypothetical co-operative lender using AI credit and fraud models."
+
+  - id: hyp-pa-05
+    display_name: "Comune Digitale Demo (hypothetical)"
+    sector: public_admin
+    ai_use_cases:
+      - public_service_chatbot
+      - benefits_eligibility
+    keywords:
+      - public administration
+      - pubblica amministrazione
+      - agid
+      - pa digitale
+      - government
+      - suap
+      - sue
+      - internet governance
+      - digital agency
+    risk_exposure: high
+    notes: "Hypothetical municipality / PA digitalisation programme."
+
+  - id: hyp-edu-06
+    display_name: "Adriatic Learning Hub (hypothetical)"
+    sector: education
+    ai_use_cases:
+      - student_assessment
+      - adaptive_learning
+    keywords:
+      - education
+      - scuola
+      - school
+      - students
+      - minori
+      - minors
+      - salesiani
+      - academy
+      - learning
+    risk_exposure: high
+    notes: "Hypothetical ed-tech consortium deploying AI tutoring and assessment."
+
+  - id: hyp-sme-07
+    display_name: "Brianza Machine Vision SME (hypothetical)"
+    sector: industrial_sme
+    ai_use_cases:
+      - industrial_quality_control
+      - predictive_maintenance
+    keywords:
+      - industrial
+      - manufacturing
+      - sme
+      - pmi
+      - machine vision
+      - predictive maintenance
+      - critical infrastructure
+      - cert-agid
+      - sicurezza
+    risk_exposure: limited
+    notes: "Hypothetical manufacturing SME using vision AI on the shop floor."
+
+  - id: hyp-gov-08
+    display_name: "EU Act Readiness Desk (hypothetical)"
+    sector: compliance_advisory
+    ai_use_cases:
+      - regulatory_monitoring
+      - conformity_assessment_support
+    keywords:
+      - ai act
+      - artificial intelligence
+      - intelligenza artificiale
+      - regulation (eu) 2024/1689
+      - 32024r1689
+      - high-risk
+      - annex iii
+      - oecd.ai
+      - regulatory framework
+      - governance
+    risk_exposure: limited
+    notes: "Hypothetical advisory desk tracking EU AI Act / OECD signals for clients."

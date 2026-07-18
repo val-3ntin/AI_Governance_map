@@ -43,3 +43,59 @@ def test_heatmap_shape():
     assert df.shape == (12, 5)
     assert list(df.columns) == PILLARS
     assert (df <= 3.0).all().all()
+
+
+def _toy_actor(
+    mandate: int = 1,
+    activity_type: str = "ongoing_enforcement",
+    reach: int = 1,
+    last_year: int = 2024,
+) -> dict:
+    return {
+        "Toy": {
+            "Risk_Auditing": {
+                "mandate": mandate,
+                "activity_type": activity_type,
+                "last_year": last_year,
+                "reach": reach,
+            }
+        }
+    }
+
+
+def test_score_no_decay_when_year_equals_last_year():
+    data = _toy_actor(mandate=1, activity_type="ongoing_enforcement", reach=1, last_year=2025)
+    # raw = 1 + 1.0 * (1+1) = 3.0
+    scores = compute_scores(data, "Risk_Auditing", year=2025, decay=0.88)
+    assert scores["Toy"] == 3.0
+
+
+def test_score_no_decay_when_year_before_last_year():
+    """Future-dated last_year must not inflate via negative exponents."""
+    data = _toy_actor(mandate=1, activity_type="active_soft", reach=0, last_year=2030)
+    # raw = 1 + 0.7 * 1 = 1.7
+    scores = compute_scores(data, "Risk_Auditing", year=2025, decay=0.5)
+    assert scores["Toy"] == 1.7
+
+
+def test_score_caps_at_three():
+    data = _toy_actor(mandate=2, activity_type="ongoing_enforcement", reach=2, last_year=2025)
+    # raw = 2 + 1.0 * 3 = 5.0 → capped
+    scores = compute_scores(data, "Risk_Auditing", year=2025, decay=0.88)
+    assert scores["Toy"] == 3.0
+
+
+def test_dormant_weight_decays_faster_than_enforcement():
+    dormant = _toy_actor(mandate=1, activity_type="expired_dormant", reach=1, last_year=2020)
+    active = _toy_actor(mandate=1, activity_type="ongoing_enforcement", reach=1, last_year=2020)
+    d = compute_scores(dormant, "Risk_Auditing", year=2025, decay=0.88)["Toy"]
+    a = compute_scores(active, "Risk_Auditing", year=2025, decay=0.88)["Toy"]
+    assert d < a
+    assert d > 0
+
+
+def test_decay_factor_one_preserves_raw_score():
+    data = _toy_actor(mandate=1, activity_type="one_off_position", reach=1, last_year=2015)
+    # raw = 1 + 0.4 * 2 = 1.8; decay**years = 1
+    scores = compute_scores(data, "Risk_Auditing", year=2030, decay=1.0)
+    assert scores["Toy"] == 1.8
