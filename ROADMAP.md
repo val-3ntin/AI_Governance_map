@@ -173,14 +173,19 @@ GDELT   ─┘                 match/       ─► impact_flags.csv (entities.ya
 
 ### Tasks
 
-1. Timeline of regulatory items over time (Plotly is already a dep).
-2. Filter/search: tracked entities + risk tiers.
-3. One-click CSV/JSON download of the filtered view.
+1. ~~Timeline of regulatory items over time (Plotly is already a dep).~~
+2. ~~Filter/search: tracked entities + risk tiers.~~
+3. ~~One-click CSV/JSON download of the filtered view.~~
 
 ### Acceptance checklist
 
-- [ ] Existing Briefing / Map / Matrix pages still work
-- [ ] Export matches what the filter shows
+- [x] Existing Briefing / Map / Matrix pages still work
+- [x] Export matches what the filter shows
+- [x] New **Regulatory Feed** nav page (timeline + table + CSV/JSON download)
+- [x] Helpers in `src/ai_gov_map/dashboard.py`; pytest covers filter/export
+
+**UI:** Streamlit sidebar → **Regulatory Feed**  
+**Helpers:** `build_monitor_frame` · `filter_monitor` · `dataframe_to_csv` / `dataframe_to_json` · `build_timeline_figure`
 
 ---
 
@@ -247,14 +252,15 @@ AI_Governance_map/
 
 ---
 
-## This week — Phase 4 shipped locally; next
+## This week — Phase 5 shipped locally; next
 
 1. ~~Extract scoring + data load into `src/`; pin deps; README.~~ (Phase 0 on `main`)  
 2. ~~Ingest package + monthly workflow + tests.~~ (Phase 1 branches / PRs)  
 3. ~~LLM summarisation (Ollama / HF / offline) + seeded `summaries.jsonl`.~~ (Phase 2 on `phase2-summarise`)  
 4. ~~Entity profiles + rules matcher → `impact_flags.csv`.~~ (Phase 3 on `phase3-entities`)  
 5. ~~Confidence heuristics + override log (`overrides.json`).~~ (Phase 4 on `phase4-judgement`)  
-6. Deploy Streamlit Community Cloud; paste live URL into README.  
-7. Start Phase 5 (timeline + filters + export dashboard) when ready.
+6. ~~Timeline + filters + export (**Regulatory Feed** page).~~ (Phase 5 on `phase5-dashboard`)  
+7. Deploy Streamlit Community Cloud; paste live URL into README.  
+8. Start Phase 6 (pytest polish, CHANGELOG, final README / screenshots) when ready.
 
-When Phase 4 is reviewed, say the word for Phase 5.
+When Phase 5 is reviewed, say the word for Phase 6.

@@ -14,6 +14,15 @@ import seaborn as sns
 from matplotlib.colors import LinearSegmentedColormap
 import plotly.graph_objects as go
 
+from ai_gov_map.dashboard import (
+    RISK_TIERS,
+    build_monitor_frame,
+    build_timeline_figure,
+    dataframe_to_csv,
+    dataframe_to_json,
+    filter_monitor,
+    list_tracked_entities,
+)
 from ai_gov_map.scoring import (
     ACTIVITY_WEIGHTS,
     GROUP_COLORS,
@@ -340,8 +349,15 @@ df_heat = compute_heatmap(structured_data, sim_year, decay_base, pillars=pillars
 # ─── PAGES ──────────────────────────────────────────────────────────────────
 page = st.sidebar.radio(
     "NAVIGATION",
-    ["Briefing", "Stakeholder Map", "Capacity Matrix", "Decay Simulation", "Playbooks"],
-    label_visibility="collapsed"
+    [
+        "Briefing",
+        "Stakeholder Map",
+        "Capacity Matrix",
+        "Decay Simulation",
+        "Playbooks",
+        "Regulatory Feed",
+    ],
+    label_visibility="collapsed",
 )
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -911,3 +927,129 @@ elif page == "Playbooks":
         <tbody>{rows_html}</tbody>
     </table>
     """, unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PAGE 5 · REGULATORY FEED (Phase 5 timeline + filters + export)
+# ═══════════════════════════════════════════════════════════════════════════
+elif page == "Regulatory Feed":
+    st.markdown("""
+    <div style='padding:24px 0 8px;'>
+        <div style='font-family:DM Mono,monospace;font-size:10px;letter-spacing:.15em;color:#7A8EA6;
+                    text-transform:uppercase;margin-bottom:6px;'>Compliance Monitor</div>
+        <div style='font-size:22px;font-weight:700;color:#0D1B2A;margin-bottom:4px;'>Regulatory Feed</div>
+        <div style='font-size:13px;color:#7A8EA6;max-width:720px;'>
+            Timeline of ingested regulation items with effective risk tiers (summaries + human overrides),
+            entity impact flags, and one-click export of the filtered view.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    @st.cache_data(show_spinner=False)
+    def _cached_monitor_frame():
+        return build_monitor_frame()
+
+    @st.cache_data(show_spinner=False)
+    def _cached_entities():
+        return list_tracked_entities()
+
+    monitor_df = _cached_monitor_frame()
+    tracked = _cached_entities()
+
+    if monitor_df.empty:
+        st.info(
+            "No regulation data loaded. Run ingest to populate "
+            "`data/regulation_data.csv`, or check that the file exists."
+        )
+    else:
+        entity_options = {e["id"]: e["display_name"] for e in tracked}
+        entity_ids = list(entity_options.keys())
+
+        c1, c2, c3 = st.columns([1.2, 1, 1.4])
+        with c1:
+            selected_entities = st.multiselect(
+                "Tracked entities",
+                options=entity_ids,
+                default=[],
+                format_func=lambda eid: entity_options.get(eid, eid),
+                help="Show items that match any selected entity (from entities.yaml / impact_flags).",
+            )
+        with c2:
+            selected_tiers = st.multiselect(
+                "Risk tiers",
+                options=list(RISK_TIERS),
+                default=list(RISK_TIERS),
+                help="Filter on effective risk tier (override wins over summary).",
+            )
+        with c3:
+            search_q = st.text_input(
+                "Search title / excerpt",
+                value="",
+                placeholder="e.g. AI Act, AgID, biometric…",
+            )
+
+        filtered = filter_monitor(
+            monitor_df,
+            entity_ids=selected_entities or None,
+            risk_tiers=selected_tiers if selected_tiers else None,
+            query=search_q or None,
+        )
+
+        n_total = len(monitor_df)
+        n_show = len(filtered)
+        review_n = int(filtered["needs_review"].sum()) if n_show and "needs_review" in filtered.columns else 0
+
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Showing", f"{n_show} / {n_total}")
+        m2.metric("Needs review", review_n)
+        m3.metric(
+            "High / unacceptable",
+            int(filtered["effective_tier"].isin(["high", "unacceptable"]).sum()) if n_show else 0,
+        )
+        m4.metric("Sources", filtered["source"].nunique() if n_show else 0)
+
+        st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
+        st.plotly_chart(build_timeline_figure(filtered), use_container_width=True)
+
+        if filtered.empty:
+            st.warning("No items match the current filters. Clear entity filters or broaden search.")
+        else:
+            display_cols = [
+                "date",
+                "title",
+                "source",
+                "effective_tier",
+                "needs_review",
+                "matched_entity_names",
+                "jurisdiction",
+                "url",
+            ]
+            st.dataframe(
+                filtered[display_cols],
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "url": st.column_config.LinkColumn("url"),
+                    "needs_review": st.column_config.CheckboxColumn("needs_review"),
+                },
+            )
+
+        csv_bytes = dataframe_to_csv(filtered).encode("utf-8")
+        json_bytes = dataframe_to_json(filtered).encode("utf-8")
+        d1, d2, _ = st.columns([1, 1, 2])
+        with d1:
+            st.download_button(
+                "Download CSV",
+                data=csv_bytes,
+                file_name="regulatory_feed_filtered.csv",
+                mime="text/csv",
+                use_container_width=True,
+            )
+        with d2:
+            st.download_button(
+                "Download JSON",
+                data=json_bytes,
+                file_name="regulatory_feed_filtered.json",
+                mime="application/json",
+                use_container_width=True,
+            )

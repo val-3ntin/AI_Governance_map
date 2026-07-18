@@ -50,10 +50,11 @@ flowchart LR
   Ov --> Overrides[overrides.json]
   Scores[scores.csv + actors.csv] --> Score[scoring.py]
   Score --> App[app.py Streamlit]
-  CSV -.-> App
-  JSONL -.-> App
-  Flags -.-> App
-  Overrides -.-> App
+  Dash[dashboard.py] --> App
+  CSV --> Dash
+  JSONL --> Dash
+  Flags --> Dash
+  Overrides --> Dash
   GH[GitHub Actions monthly] --> Ingest
 ```
 
@@ -151,7 +152,7 @@ python -m ai_gov_map.overrides list
 python -m ai_gov_map.overrides effective --id garante:928c6a68df97e0f9
 ```
 
-`effective_tier(doc_id)` returns the override tier when present, else the summary tier (ready for Phase 5 dashboard).
+`effective_tier(doc_id)` returns the override tier when present, else the summary tier — used by the Phase 5 **Regulatory Feed** page.
 
 **Where the model/rules were wrong (examples):**
 
@@ -162,6 +163,20 @@ python -m ai_gov_map.overrides effective --id garante:928c6a68df97e0f9
 | `eurlex:32024R1689R(04)` | high → minimal | Corrigendum is technical errata, not a new risk classification; CELEX parent-Act heuristic over-applied `high`. |
 
 Full seeded log: eight overrides in [`data/overrides.json`](data/overrides.json).
+
+---
+
+## Regulatory Feed (Phase 5)
+
+Sidebar → **Regulatory Feed** shows a Plotly timeline of `data/regulation_data.csv`, filtered by:
+
+- tracked entities (`entities.yaml` + `impact_flags.csv`)
+- effective risk tiers (summaries + `overrides.json`)
+- free-text search on title / excerpt
+
+Download buttons export the **filtered** view as CSV or JSON. Helpers live in [`src/ai_gov_map/dashboard.py`](src/ai_gov_map/dashboard.py) (no Streamlit dependency in the pure functions).
+
+> **Screenshot:** *[add Regulatory Feed screenshot after deploy]*
 
 ---
 
@@ -186,7 +201,7 @@ Automation: [`.github/workflows/ingest.yml`](.github/workflows/ingest.yml) — c
 3. Select repo / branch `main` / Main file path: `app.py`.
 4. Deploy → paste the URL into this README and the GitHub repo **About → Website**.
 
-No secrets required for Phases 0–4 if you ship cached `data/summaries.jsonl`, `data/impact_flags.csv`, and `data/overrides.json`. Optional: set `HF_TOKEN` only if you want live HF summarisation in Actions/Cloud.
+No secrets required for Phases 0–5 if you ship cached `data/summaries.jsonl`, `data/impact_flags.csv`, and `data/overrides.json`. Optional: set `HF_TOKEN` only if you want live HF summarisation in Actions/Cloud.
 
 ---
 
@@ -199,8 +214,9 @@ No secrets required for Phases 0–4 if you ship cached `data/summaries.jsonl`, 
 | Capacity Matrix | Heatmap across EU AI Act–aligned pillars |
 | Decay Simulation | Obsolescence over a chosen horizon |
 | Playbooks | Intervention vectors for non-profit capital |
+| **Regulatory Feed** | Timeline + entity/tier filters + CSV/JSON export |
 
-Capacity data lives in `data/scores.csv` and `data/actors.csv`. Regulatory items accumulate in `data/regulation_data.csv` (timeline UI lands in Phase 5).
+Capacity data lives in `data/scores.csv` and `data/actors.csv`. Regulatory items live in `data/regulation_data.csv` and are surfaced on **Regulatory Feed**.
 
 ---
 
@@ -211,7 +227,8 @@ Capacity data lives in `data/scores.csv` and `data/actors.csv`. Regulatory items
 - GitHub Actions monthly ingest (free on public repos)  
 - Summaries: Ollama → HF Inference API → offline rules → `data/summaries.jsonl`  
 - Entity matcher: rules-based keyword/taxonomy → `data/impact_flags.csv` (Phase 3)  
-- Judgement: confidence heuristics + human overrides → `data/overrides.json` (Phase 4)
+- Judgement: confidence heuristics + human overrides → `data/overrides.json` (Phase 4)  
+- Monitor UI: `dashboard.py` loaders/filters/export → Regulatory Feed page (Phase 5)
 
 Exploratory notebook archived at `notebooks/italy_ai_governance_heatmap_v3.ipynb` (not used at runtime).
 
@@ -219,11 +236,11 @@ Exploratory notebook archived at `notebooks/italy_ai_governance_heatmap_v3.ipynb
 
 ## Limitations & next
 
-- Capacity heatmap still uses a curated static matrix; regulation CSV / summaries are separate until Phase 5 wires them into the UI.  
+- Capacity heatmap still uses a curated static matrix; the Regulatory Feed wires regulation CSV / summaries / overrides into the UI separately.  
 - OECD.AI has **no reliable public API** — Phase 1 uses a documented curated-page fallback, not scraped HTML tables.  
 - GDELT is rate-limited and noisy; treat it as a secondary signal.  
 - Seeded summaries use the offline rule backend; re-run with Ollama/HF locally for higher-quality text. Heuristics + invalid model tags set `needs_review`.  
 - Impact flags are heuristic (keyword/taxonomy); not a legal opinion. Entities are hypothetical.  
 - Overrides are analyst judgements for demo/interview — not formal legal classifications.  
-- Timeline / filter / export UI is next (Phase 5).  
+- Polish pass (CHANGELOG, more tests, screenshots) is next (Phase 6).  
 - See [ROADMAP.md](ROADMAP.md) for the full build path.
