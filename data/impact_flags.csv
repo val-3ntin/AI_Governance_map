@@ -1,0 +1,45 @@
+regulation_id,entity_id,match_score,matched_terms,risk_tier,reason,flagged_at
+agid:562341516d9f31cf,hyp-edu-06,1.35,academy,high,keywords=academy; risk_align=high,2026-07-18T10:21:27Z
+agid:562341516d9f31cf,hyp-gov-08,1.00,ai act,high,keywords=ai act,2026-07-18T10:21:27Z
+agid:562341516d9f31cf,hyp-pa-05,1.35,agid,high,keywords=agid; risk_align=high,2026-07-18T10:21:27Z
+agid:62cc8f806003ae98,hyp-gov-08,1.00,intelligenza artificiale,minimal,keywords=intelligenza artificiale,2026-07-18T10:21:27Z
+agid:62cc8f806003ae98,hyp-pa-05,1.00,agid,minimal,keywords=agid,2026-07-18T10:21:27Z
+agid:62cc8f806003ae98,hyp-sme-07,2.00,cert-agid|sicurezza,minimal,"keywords=cert-agid,sicurezza",2026-07-18T10:21:27Z
+agid:63492ca7d9f0321e,hyp-gov-08,1.00,governance,minimal,keywords=governance,2026-07-18T10:21:27Z
+agid:63492ca7d9f0321e,hyp-pa-05,2.00,agid|internet governance,minimal,"keywords=agid,internet governance",2026-07-18T10:21:27Z
+agid:68161a0de74b9942,hyp-pa-05,4.00,agid|pa digitale|suap|sue,minimal,"keywords=agid,pa digitale,suap,sue",2026-07-18T10:21:27Z
+agid:793f1ce51ffb2b41,hyp-gov-08,1.00,governance,minimal,keywords=governance,2026-07-18T10:21:27Z
+agid:793f1ce51ffb2b41,hyp-pa-05,1.00,agid,minimal,keywords=agid,2026-07-18T10:21:27Z
+agid:8bb57472b2abe916,hyp-gov-08,1.00,governance,minimal,keywords=governance,2026-07-18T10:21:27Z
+agid:8bb57472b2abe916,hyp-pa-05,1.00,internet governance,minimal,keywords=internet governance,2026-07-18T10:21:27Z
+eurlex:32024R1689,hyp-gov-08,4.00,ai act|artificial intelligence|regulation (eu) 2024/1689|32024r1689,high,"keywords=ai act,artificial intelligence,regulation (eu) 2024/1689,32024r1689",2026-07-18T10:21:16Z
+eurlex:32024R1689R(01),hyp-gov-08,3.00,ai act|regulation (eu) 2024/1689|32024r1689,high,"keywords=ai act,regulation (eu) 2024/1689,32024r1689",2026-07-18T10:21:16Z
+eurlex:32024R1689R(02),hyp-gov-08,3.00,ai act|regulation (eu) 2024/1689|32024r1689,high,"keywords=ai act,regulation (eu) 2024/1689,32024r1689",2026-07-18T10:21:16Z
+eurlex:32024R1689R(03),hyp-gov-08,3.00,ai act|regulation (eu) 2024/1689|32024r1689,high,"keywords=ai act,regulation (eu) 2024/1689,32024r1689",2026-07-18T10:21:16Z
+eurlex:32024R1689R(04),hyp-gov-08,3.00,ai act|regulation (eu) 2024/1689|32024r1689,high,"keywords=ai act,regulation (eu) 2024/1689,32024r1689",2026-07-18T10:21:16Z
+garante:386735deb15f4a56,hyp-bio-03,1.00,privacy,minimal,keywords=privacy,2026-07-18T10:21:27Z
+garante:3ef52fea9b0e0ee5,hyp-bio-03,1.00,privacy,minimal,keywords=privacy,2026-07-18T10:21:27Z
+garante:3ef52fea9b0e0ee5,hyp-edu-06,2.00,scuola|salesiani,minimal,"keywords=scuola,salesiani",2026-07-18T10:21:27Z
+garante:79c063f0a336d055,hyp-bio-03,1.00,privacy,minimal,keywords=privacy,2026-07-18T10:21:27Z
+garante:79c063f0a336d055,hyp-fin-04,3.00,credit|data breach|wind tre,minimal,"keywords=credit,data breach,wind tre",2026-07-18T10:21:27Z
+garante:90b9873b936ba122,hyp-bio-03,1.00,privacy,minimal,keywords=privacy,2026-07-18T10:21:27Z
+garante:928c6a68df97e0f9,hyp-bio-03,1.00,privacy,high,keywords=privacy,2026-07-18T10:21:27Z
+garante:928c6a68df97e0f9,hyp-edu-06,1.35,minori,high,keywords=minori; risk_align=high,2026-07-18T10:21:27Z
+garante:93abcf77f167bbc5,hyp-bio-03,2.00,character.ai|privacy,high,"keywords=character.ai,privacy",2026-07-18T10:21:27Z
+garante:93abcf77f167bbc5,hyp-edu-06,1.35,minori,high,keywords=minori; risk_align=high,2026-07-18T10:21:27Z
+garante:93abcf77f167bbc5,hyp-gov-08,1.00,intelligenza artificiale,high,keywords=intelligenza artificiale,2026-07-18T10:21:27Z
+garante:bd7264654923bc2f,hyp-bio-03,1.00,privacy,high,keywords=privacy,2026-07-18T10:21:27Z
+garante:bd7264654923bc2f,hyp-hr-02,2.35,lavoro|start-up,high,"keywords=lavoro,start-up; risk_align=high",2026-07-18T10:21:27Z
+garante:ce19a426cd94b4a6,hyp-bio-03,1.00,privacy,minimal,keywords=privacy,2026-07-18T10:21:27Z
+gdelt:4d670f863a5a42f9,hyp-gov-08,1.00,governance,minimal,keywords=governance,2026-07-18T10:21:43Z
+gdelt:520b03ecc47170cf,hyp-gov-08,1.00,intelligenza artificiale,minimal,keywords=intelligenza artificiale,2026-07-18T10:21:43Z
+gdelt:520b03ecc47170cf,hyp-health-01,2.00,sanità|ausl,minimal,"keywords=sanità,ausl",2026-07-18T10:21:43Z
+gdelt:785f761ad90541a2,hyp-gov-08,2.00,artificial intelligence|governance,minimal,"keywords=artificial intelligence,governance",2026-07-18T10:21:43Z
+gdelt:84218b7a120a4f66,hyp-gov-08,1.00,governance,minimal,keywords=governance,2026-07-18T10:21:43Z
+gdelt:9e6fd39afb7c737a,hyp-gov-08,1.00,intelligenza artificiale,minimal,keywords=intelligenza artificiale,2026-07-18T10:21:43Z
+gdelt:9e6fd39afb7c737a,hyp-health-01,2.00,sanità|ausl,minimal,"keywords=sanità,ausl",2026-07-18T10:21:43Z
+gdelt:feba2fc061e9bd67,hyp-gov-08,1.00,governance,minimal,keywords=governance,2026-07-18T10:21:43Z
+gdelt:fedc6ad33e8530de,hyp-gov-08,1.00,governance,minimal,keywords=governance,2026-07-18T10:21:43Z
+oecd:eu-ai-framework,hyp-gov-08,3.00,ai act|artificial intelligence|regulatory framework,high,"keywords=ai act,artificial intelligence,regulatory framework",2026-07-18T10:21:26Z
+oecd:eu-overview,hyp-gov-08,1.00,oecd.ai,minimal,keywords=oecd.ai,2026-07-18T10:21:26Z
+oecd:italy-national,hyp-gov-08,2.00,oecd.ai|governance,minimal,"keywords=oecd.ai,governance",2026-07-18T10:21:26Z

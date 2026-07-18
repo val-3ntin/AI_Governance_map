@@ -18,7 +18,8 @@ Free sources                Package                         Flat data (git)
 EUR-Lex SPARQL ─┐           src/ai_gov_map/
 OECD.AI (curated)┼─► ingest/ ──► data/raw/ + regulation_data.csv
 AgID / Garante ─┤           summarise/ ─► data/summaries.jsonl
-GDELT (fallback)┘           scoring.py ──► scores.csv
+GDELT (fallback)┘           match/     ─► data/impact_flags.csv
+                            scoring.py ──► scores.csv
                             dashboard.py
                                    │
                                    ▼
@@ -37,10 +38,15 @@ flowchart LR
   HF[HF Inference API] --> Sum
   Offline[Offline rules] --> Sum
   Sum --> JSONL[summaries.jsonl]
+  CSV --> Match[ai_gov_map.match]
+  Ent[entities.yaml] --> Match
+  JSONL --> Match
+  Match --> Flags[impact_flags.csv]
   Scores[scores.csv + actors.csv] --> Score[scoring.py]
   Score --> App[app.py Streamlit]
   CSV -.-> App
   JSONL -.-> App
+  Flags -.-> App
   GH[GitHub Actions monthly] --> Ingest
 ```
 
@@ -100,6 +106,20 @@ Appends JSONL lines keyed by document `id` (`summary`, `risk_tier`, `rationale`,
 
 **Streamlit Cloud:** commit `data/summaries.jsonl` (seeded offline for the current feed). The live app should read cached summaries — no Ollama and no HF secret required for demo.
 
+### Entity impact flags (Phase 3)
+
+```bash
+# Rewrite data/impact_flags.csv from entities + regulations (+ optional summaries)
+python -m ai_gov_map.match
+
+# Options
+python -m ai_gov_map.match --dry-run
+python -m ai_gov_map.match --skip-summaries
+python -m ai_gov_map.match --entities data/entities.yaml -i data/regulation_data.csv -o data/impact_flags.csv
+```
+
+Profiles live in `data/entities.yaml` (**hypothetical / anonymised** demo orgs — not real companies). The matcher is **rules-only** (keyword + use-case/sector taxonomy overlap; optional `risk_tier` from `summaries.jsonl`). Output schema: `regulation_id,entity_id,match_score,matched_terms,risk_tier,reason,flagged_at`. Full CSV rewrite is deterministic for fixed inputs (`flagged_at` defaults to each regulation’s `fetched_at`).
+
 ---
 
 ## Ingest sources (Phase 1)
@@ -123,7 +143,7 @@ Automation: [`.github/workflows/ingest.yml`](.github/workflows/ingest.yml) — c
 3. Select repo / branch `main` / Main file path: `app.py`.
 4. Deploy → paste the URL into this README and the GitHub repo **About → Website**.
 
-No secrets required for Phases 0–2 if you ship cached `data/summaries.jsonl`. Optional: set `HF_TOKEN` only if you want live HF summarisation in Actions/Cloud.
+No secrets required for Phases 0–3 if you ship cached `data/summaries.jsonl` and regenerate `data/impact_flags.csv` locally. Optional: set `HF_TOKEN` only if you want live HF summarisation in Actions/Cloud.
 
 ---
 
@@ -147,7 +167,8 @@ Capacity data lives in `data/scores.csv` and `data/actors.csv`. Regulatory items
 - Flat files in git (no database)  
 - GitHub Actions monthly ingest (free on public repos)  
 - Summaries: Ollama → HF Inference API → offline rules → `data/summaries.jsonl`  
-- Planned: entity matcher, judgment/override log (Phases 3–4) 
+- Entity matcher: rules-based keyword/taxonomy → `data/impact_flags.csv` (Phase 3)  
+- Planned: judgment/override log (Phase 4) 
 
 Exploratory notebook archived at `notebooks/italy_ai_governance_heatmap_v3.ipynb` (not used at runtime).
 
@@ -159,5 +180,6 @@ Exploratory notebook archived at `notebooks/italy_ai_governance_heatmap_v3.ipynb
 - OECD.AI has **no reliable public API** — Phase 1 uses a documented curated-page fallback, not scraped HTML tables.  
 - GDELT is rate-limited and noisy; treat it as a secondary signal.  
 - Seeded summaries use the offline rule backend; re-run with Ollama/HF locally for higher-quality text. Invalid model tags set `needs_review` (Phase 4).  
-- Entity compliance mapping and judgment overrides are next (Phases 3–4).  
+- Impact flags are heuristic (keyword/taxonomy); not a legal opinion. Entities are hypothetical.  
+- Judgment overrides (Phase 4) and timeline UI (Phase 5) are next.  
 - See [ROADMAP.md](ROADMAP.md) for the full build path.

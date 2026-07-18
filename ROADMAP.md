@@ -32,7 +32,7 @@ EUR-Lex  ─┐                 src/ai_gov_map/
 OECD.AI* ─┼─► ingest/   ──► data/raw/ + regulation_data.csv
 AgID RSS ─┤                 scoring.py ──► scores.csv / history.json
 Garante  ─┤                 summarise.py ─► summaries.jsonl (Ollama → HF fallback)
-GDELT   ─┘                 match.py     ─► impact_flags.csv (entities.yaml)
+GDELT   ─┘                 match/       ─► impact_flags.csv (entities.yaml)
   *curated fallback (no public API)
                             confidence.py ► needs_human_review + overrides.json
                                    │
@@ -129,20 +129,22 @@ GDELT   ─┘                 match.py     ─► impact_flags.csv (entities.ya
 
 ---
 
-## Phase 3 — Entity tracking + compliance mapping (Week 6)
+## Phase 3 — Entity tracking + compliance mapping (Week 6) — **IMPLEMENTED (local)**
 
 **Definition of done:** 5–8 tracked entities get impact flags per regulatory item via rules (no ML).
 
 ### Tasks
 
-1. `data/entities.yaml` — sector, AI use-cases, keywords, optional risk exposure.
-2. Rules matcher: keyword + taxonomy overlap → `data/impact_flags.csv`.
-3. Stay flat-file only (`scores.csv`, `regulation_data.csv`, `history.json`, …).
+1. ~~`data/entities.yaml` — sector, AI use-cases, keywords, optional risk exposure.~~
+2. ~~Rules matcher: keyword + taxonomy overlap → `data/impact_flags.csv`.~~
+3. ~~Stay flat-file only (`scores.csv`, `regulation_data.csv`, `summaries.jsonl`, `entities.yaml`, `impact_flags.csv`, …).~~
 
 ### Acceptance checklist
 
-- [ ] Matcher is deterministic and unit-tested
-- [ ] Entities are clearly labelled hypothetical/anonymised if not real orgs
+- [x] Matcher is deterministic and unit-tested
+- [x] Entities are clearly labelled hypothetical/anonymised if not real orgs
+
+**CLI:** `python -m ai_gov_map.match` (rewrites `data/impact_flags.csv`; optional `--summaries` for `risk_tier`).
 
 ---
 
@@ -222,8 +224,8 @@ AI_Governance_map/
 ├── src/ai_gov_map/
 │   ├── ingest/
 │   ├── summarise/      # Phase 2 — Ollama / HF / offline → summaries.jsonl
+│   ├── match/          # Phase 3 — entities.yaml → impact_flags.csv
 │   ├── scoring.py
-│   ├── match.py
 │   ├── confidence.py
 │   └── dashboard.py
 └── tests/
@@ -242,12 +244,13 @@ AI_Governance_map/
 
 ---
 
-## This week — Phase 1 shipped locally; next
+## This week — Phase 3 shipped locally; next
 
 1. ~~Extract scoring + data load into `src/`; pin deps; README.~~ (Phase 0 on `main`)  
-2. ~~Ingest package + monthly workflow + tests.~~ (Phase 1 in working tree)  
-3. Commit/push Phase 1; confirm Actions green via `workflow_dispatch`.  
-4. Deploy Streamlit Community Cloud; paste live URL into README.  
-5. Start Phase 2 (Ollama/HF summarisation) when ready.
+2. ~~Ingest package + monthly workflow + tests.~~ (Phase 1 branches / PRs)  
+3. ~~LLM summarisation (Ollama / HF / offline) + seeded `summaries.jsonl`.~~ (Phase 2 on `phase2-summarise`)  
+4. ~~Entity profiles + rules matcher → `impact_flags.csv`.~~ (Phase 3 on `phase3-entities`)  
+5. Deploy Streamlit Community Cloud; paste live URL into README.  
+6. Start Phase 4 (confidence heuristics + override log) when ready.
 
-When Phase 1 is on `main` with a green Action, say the word for Phase 2.
+When Phase 3 is reviewed, say the word for Phase 4.
