@@ -4,7 +4,7 @@
 
 Italy’s AI governance is fragmented: enforcement concentrated in Rome, an SME-heavy economy, and large digital funds (PNRR/CDP) with limited AI-risk conditionality. This project quantifies institutional capacity across **12 actors × 5 pillars**, applies a dormancy-decay model, and surfaces intervention leverage — then wires a free/open ingest → summarise → match → review loop for compliance monitoring.
 
-> **Live demo:** *[add Streamlit Community Cloud URL after deploy]*  
+> **Live demo:** ** https://aigovernancemap-4fm5ttkoup6cnux9izvopq.streamlit.app **  
 > **Roadmap:** [ROADMAP.md](ROADMAP.md) · **Changelog:** [CHANGELOG.md](CHANGELOG.md)  
 > **Regulation feed:** `data/regulation_data.csv` — refreshed **monthly** via GitHub Actions (and on demand with `workflow_dispatch`)
 
