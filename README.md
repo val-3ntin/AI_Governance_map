@@ -238,7 +238,7 @@ Exploratory notebook archived at `notebooks/italy_ai_governance_heatmap_v3.ipynb
 
 ## Limitations & what I'd improve
 
-Honest constraints (interview framing — not a legal product):
+Honest constraints (not a legal product):
 
 - **Static capacity matrix** — actor×pillar scores are curated CSVs, not derived from the regulation feed. Wiring ingest signals into capacity updates would be the next research step.
 - **OECD.AI has no reliable public API** — Phase 1 uses curated public-page URLs, not scraped HTML tables that break monthly.
