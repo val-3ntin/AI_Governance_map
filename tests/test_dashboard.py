@@ -10,12 +10,17 @@ import pytest
 
 from ai_gov_map.dashboard import (
     MONITOR_COLUMNS,
+    build_decay_bar_figure,
+    build_heatmap_figure,
     build_monitor_frame,
     build_timeline_figure,
     dataframe_to_csv,
     dataframe_to_json,
     filter_monitor,
+    format_refresh_label,
+    last_fetched_at,
     list_tracked_entities,
+    load_overrides_table,
     load_regulation_frame,
 )
 
@@ -150,9 +155,60 @@ def test_build_monitor_frame_applies_effective_tier(fixture_dir: Path):
     assert by_id.loc["doc:a", "effective_tier"] == "unacceptable"
     assert by_id.loc["doc:b", "effective_tier"] == "minimal"  # overridden
     assert by_id.loc["doc:c", "effective_tier"] == "high"  # overridden
+    assert bool(by_id.loc["doc:a", "overridden"]) is False
+    assert bool(by_id.loc["doc:b", "overridden"]) is True
+    assert bool(by_id.loc["doc:c", "overridden"]) is True
     assert by_id.loc["doc:b", "needs_review"] is True or bool(by_id.loc["doc:b", "needs_review"])
     assert "hyp-pa-05" in str(by_id.loc["doc:b", "matched_entities"])
     assert "Northern Care" in str(by_id.loc["doc:c", "matched_entity_names"])
+
+
+def test_last_fetched_at_and_format(fixture_dir: Path):
+    stamp = last_fetched_at(fixture_dir / "regulation_data.csv")
+    assert stamp == "2025-03-01T00:00:00Z"
+    assert format_refresh_label(stamp) == "2025-03-01"
+    assert format_refresh_label(None) == "unknown"
+    assert format_refresh_label("") == "unknown"
+    assert last_fetched_at(fixture_dir / "missing.csv") is None
+
+
+def test_load_overrides_table(fixture_dir: Path):
+    table = load_overrides_table(fixture_dir / "overrides.json")
+    assert len(table) == 2
+    assert set(table["id"]) == {"doc:b", "doc:c"}
+    row_b = table.set_index("id").loc["doc:b"]
+    assert row_b["was_now"] == "high → minimal"
+    assert "Training" in row_b["reason"]
+    empty = load_overrides_table(fixture_dir / "nope.json")
+    assert empty.empty
+    assert "was_now" in empty.columns
+
+
+def test_plotly_helpers_empty_and_seeded(fixture_dir: Path):
+    empty_heat = build_heatmap_figure(pd.DataFrame())
+    assert empty_heat is not None
+    assert "No capacity" in (empty_heat.layout.title.text or "")
+
+    heat = pd.DataFrame(
+        [[1.0, 2.0], [0.5, 3.0]],
+        index=["Actor A", "Actor B"],
+        columns=["Risk_Auditing", "Transparency"],
+    )
+    fig = build_heatmap_figure(
+        heat,
+        {"Risk_Auditing": "Risk", "Transparency": "Transparency"},
+        flag_cells=[("Actor A", 0)],
+    )
+    assert fig is not None
+    assert len(fig.data) >= 1
+
+    bars = build_decay_bar_figure(
+        pd.Series({"Low": 0.4, "High": 2.5}),
+        title="Decay",
+        subtitle="test",
+    )
+    assert bars is not None
+    assert len(bars.data) == 1
 
 
 def test_filter_monitor_by_entity_tier_and_query(fixture_dir: Path):

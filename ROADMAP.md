@@ -15,7 +15,7 @@
 | `requirements.txt` | Pinned | — |
 | Package + CLIs | ingest / summarise / match / confidence / overrides | Merge branch stack to `main` |
 | Tests + CI | ≥50 pytest; `.github/workflows/ci.yml` | Green on GitHub after first push |
-| Live demo | Not deployed | Streamlit Community Cloud (manual) |
+| Live demo | Deployed | [Streamlit Cloud](https://aigovernancemap-4fm5ttkoup6cnux9izvopq.streamlit.app/) |
 
 **What already works and should be preserved:** Italy/EU framing, 12 actors × 5 pillars, decay scoring, Briefing / Stakeholder Map / Capacity Matrix / Decay Simulation / Playbooks / Regulatory Feed UI.
 
@@ -70,7 +70,7 @@ GDELT   ─┘                 match/       ─► impact_flags.csv (entities.ya
 ### Acceptance checklist
 
 - [x] Notebook is no longer the runtime path (can keep as `notebooks/` archive)
-- [ ] Live demo URL works without local setup *(deploy to Streamlit Community Cloud)*
+- [x] Live demo URL works without local setup *(Streamlit Community Cloud — see README)*
 - [x] Scoring behaviour matches current app (spot-check heatmap numbers)
 
 ---
@@ -203,8 +203,14 @@ GDELT   ─┘                 match/       ─► impact_flags.csv (entities.ya
 
 - [x] `pytest` green locally; CI workflow present (`.github/workflows/ci.yml`)
 - [x] Limitations section is specific (not generic)
-- [ ] Screenshots/GIF committed under `docs/` *(after Cloud deploy or local capture)*
-- [ ] Live demo URL pasted into README + GitHub About *(Streamlit Community Cloud)*
+- [ ] Screenshots/GIF committed under `docs/` *(optional after polish merge)*
+- [x] Live demo URL pasted into README + GitHub About *(Streamlit Community Cloud)*
+
+---
+
+## UI polish (post Phase 6) — Feed-first recruiter surface
+
+Shipped on branch `ui/professional-polish`: quieter chrome, Feed default + badges/overrides strip, Plotly matrix/decay bars, cached refresh stamp, README live URL. Screenshots under `docs/` remain optional.
 
 ---
 
@@ -254,18 +260,17 @@ AI_Governance_map/
 
 ---
 
-## This week — Phase 6 shipped locally; remaining manual
+## This week — status
 
 1. ~~Extract scoring + data load into `src/`; pin deps; README.~~ (Phase 0 on `main`)  
-2. ~~Ingest package + monthly workflow + tests.~~ (Phase 1 branches / PRs)  
-3. ~~LLM summarisation (Ollama / HF / offline) + seeded `summaries.jsonl`.~~ (Phase 2 on `phase2-summarise`)  
-4. ~~Entity profiles + rules matcher → `impact_flags.csv`.~~ (Phase 3 on `phase3-entities`)  
-5. ~~Confidence heuristics + override log (`overrides.json`).~~ (Phase 4 on `phase4-judgement`)  
-6. ~~Timeline + filters + export (**Regulatory Feed** page).~~ (Phase 5 on `phase5-dashboard`)  
-7. ~~Pytest polish, CHANGELOG, final README, CI workflow.~~ (Phase 6 on `phase6-polish`)  
-8. **Manual:** merge PR stack carefully (Phase 1 open PRs #1/#2 exist; Phases 2–6 are local) — do not force-push.  
-9. **Manual:** push phase branches / open PRs when ready; enable ingest Action on `main`.  
-10. **Manual:** deploy Streamlit Community Cloud; paste live URL + add screenshots.  
-11. **Manual:** set GitHub Topics from the README suggestion list.
+2. ~~Ingest package + monthly workflow + tests.~~ (Phase 1)  
+3. ~~LLM summarisation (Ollama / HF / offline) + seeded `summaries.jsonl`.~~ (Phase 2)  
+4. ~~Entity profiles + rules matcher → `impact_flags.csv`.~~ (Phase 3)  
+5. ~~Confidence heuristics + override log (`overrides.json`).~~ (Phase 4)  
+6. ~~Timeline + filters + export (**Regulatory Feed** page).~~ (Phase 5)  
+7. ~~Pytest polish, CHANGELOG, final README, CI workflow.~~ (Phase 6)  
+8. ~~UI polish: Feed-first chrome, overrides strip, Plotly matrix/bars.~~ (`ui/professional-polish`)  
+9. **Manual:** enable ingest Action on `main` if needed; set GitHub Topics from the README suggestion list.  
+10. **Optional:** capture screenshots under `docs/`.
 
-Phases 0–6 code is complete locally; the “complete project” gate still needs the live URL + a green ingest run on public `main`.
+Phases 0–6 + UI polish are in-repo; live URL is in README. Remaining optional: screenshots, Topics, confirm ingest schedule.
