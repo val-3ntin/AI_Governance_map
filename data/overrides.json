@@ -1,0 +1,66 @@
+[
+  {
+    "id": "garante:928c6a68df97e0f9",
+    "previous_tier": "high",
+    "new_tier": "minimal",
+    "reason": "Offline keyword 'minori' over-fired on a soft G7 principles communiqué — not an Annex III product duty.",
+    "overridden_at": "2026-07-18T11:00:00Z",
+    "overridden_by": "analyst"
+  },
+  {
+    "id": "agid:562341516d9f31cf",
+    "previous_tier": "high",
+    "new_tier": "minimal",
+    "reason": "AgID Academy training catalogue is capacity-building content; EUR-Lex-style 'digitale' heuristic wrongly pulled it into high-risk corpus.",
+    "overridden_at": "2026-07-18T11:01:00Z",
+    "overridden_by": "analyst"
+  },
+  {
+    "id": "gdelt:9e6fd39afb7c737a",
+    "previous_tier": "minimal",
+    "new_tier": "high",
+    "reason": "Ausl/sanità digitale AI deployment sits in health Annex III territory; offline news-tone default under-scored it as minimal.",
+    "overridden_at": "2026-07-18T11:02:00Z",
+    "overridden_by": "analyst"
+  },
+  {
+    "id": "garante:3ef52fea9b0e0ee5",
+    "previous_tier": "minimal",
+    "new_tier": "high",
+    "reason": "School AI information request implicates education-sector use-cases; rules missed education signals and left the tier at minimal.",
+    "overridden_at": "2026-07-18T11:03:00Z",
+    "overridden_by": "analyst"
+  },
+  {
+    "id": "eurlex:32024R1689R(04)",
+    "previous_tier": "high",
+    "new_tier": "minimal",
+    "reason": "Corrigendum is technical errata to the AI Act, not a new risk classification; CELEX parent-Act heuristic over-applied 'high'.",
+    "overridden_at": "2026-07-18T11:04:00Z",
+    "overridden_by": "analyst"
+  },
+  {
+    "id": "garante:93abcf77f167bbc5",
+    "previous_tier": "high",
+    "new_tier": "limited",
+    "reason": "Character.AI sanction is primarily GDPR/age-verification on a chatbot; limited (transparency) fits better than Annex III high until product duties are shown.",
+    "overridden_at": "2026-07-18T11:05:00Z",
+    "overridden_by": "analyst"
+  },
+  {
+    "id": "oecd:eu-ai-framework",
+    "previous_tier": "high",
+    "new_tier": "limited",
+    "reason": "OECD page describes the EU regulatory framework at policy level; tagging the whole overview as high conflates description with Annex III obligations.",
+    "overridden_at": "2026-07-18T11:06:00Z",
+    "overridden_by": "analyst"
+  },
+  {
+    "id": "garante:bd7264654923bc2f",
+    "previous_tier": "high",
+    "new_tier": "unacceptable",
+    "reason": "Workplace emotion/stress monitoring warning is closer to prohibited emotion inference at work than generic high-risk HR tooling.",
+    "overridden_at": "2026-07-18T11:07:00Z",
+    "overridden_by": "analyst"
+  }
+]

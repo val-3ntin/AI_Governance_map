@@ -41,8 +41,11 @@ def summarise_record(
     *,
     created_at: str | None = None,
 ) -> SummaryRecord:
+    # Lazy import avoids circular load: confidence → summarise.models → summarise package.
+    from ai_gov_map.confidence import apply_judgment
+
     result = backend.summarise(record)
-    return SummaryRecord(
+    draft = SummaryRecord(
         id=record.id,
         summary=str(result["summary"]),
         risk_tier=str(result["risk_tier"]),
@@ -52,6 +55,16 @@ def summarise_record(
         confidence=float(result.get("confidence", 0.5)),
         needs_review=bool(result.get("needs_review", False)),
     )
+    # Phase 4: merge backend flag with confidence heuristics (hedging, dates, taxonomy).
+    judged, judgment = apply_judgment(draft, metadata_date=record.date)
+    if judgment.get("reasons"):
+        logger.debug(
+            "Judgement for %s: needs_review=%s reasons=%s",
+            judged.id,
+            judged.needs_review,
+            judgment["reasons"],
+        )
+    return judged
 
 
 def run_summarise(

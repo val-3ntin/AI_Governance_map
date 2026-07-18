@@ -34,7 +34,7 @@ AgID RSS ─┤                 scoring.py ──► scores.csv / history.json
 Garante  ─┤                 summarise.py ─► summaries.jsonl (Ollama → HF fallback)
 GDELT   ─┘                 match/       ─► impact_flags.csv (entities.yaml)
   *curated fallback (no public API)
-                            confidence.py ► needs_human_review + overrides.json
+                            confidence/ ► needs_human_review + overrides.json
                                    │
                                    ▼
                             dashboard.py ◄── app.py (thin)
@@ -148,20 +148,22 @@ GDELT   ─┘                 match/       ─► impact_flags.csv (entities.ya
 
 ---
 
-## Phase 4 — Judgement layer (Week 7) — **differentiator**
+## Phase 4 — Judgement layer (Week 7) — **IMPLEMENTED (local)**
 
 **Definition of done:** Auto “needs human review” + a filled override log you can show in interviews.
 
 ### Tasks
 
-1. Confidence heuristics: hedging language (“may”, “unclear”), conflicting dates, tag outside taxonomy → `needs_human_review=true`.
-2. Small UI or CLI to record override: previous tag, new tag, one-line reason → `data/overrides.json`.
-3. Seed **5–10 real overrides** with honest reasoning (interview gold).
+1. ~~Confidence heuristics: hedging language (“may”, “unclear”), conflicting dates, tag outside taxonomy → `needs_human_review=true`.~~
+2. ~~CLI to record override: previous tag, new tag, one-line reason → `data/overrides.json`.~~
+3. ~~Seed **5–10 real overrides** with honest reasoning (interview gold).~~
 
 ### Acceptance checklist
 
-- [ ] Override log is in the repo and readable
-- [ ] README links to 1–2 example overrides as “where the model was wrong”
+- [x] Override log is in the repo and readable (`data/overrides.json`)
+- [x] README links to 1–2 example overrides as “where the model was wrong”
+
+**CLI:** `python -m ai_gov_map.confidence` (re-flag summaries) · `python -m ai_gov_map.overrides add|list|effective`
 
 ---
 
@@ -225,8 +227,9 @@ AI_Governance_map/
 │   ├── ingest/
 │   ├── summarise/      # Phase 2 — Ollama / HF / offline → summaries.jsonl
 │   ├── match/          # Phase 3 — entities.yaml → impact_flags.csv
+│   ├── confidence/     # Phase 4 — needs_human_review heuristics
+│   ├── overrides/      # Phase 4 — overrides.json + effective_tier
 │   ├── scoring.py
-│   ├── confidence.py
 │   └── dashboard.py
 └── tests/
 ```
@@ -244,13 +247,14 @@ AI_Governance_map/
 
 ---
 
-## This week — Phase 3 shipped locally; next
+## This week — Phase 4 shipped locally; next
 
 1. ~~Extract scoring + data load into `src/`; pin deps; README.~~ (Phase 0 on `main`)  
 2. ~~Ingest package + monthly workflow + tests.~~ (Phase 1 branches / PRs)  
 3. ~~LLM summarisation (Ollama / HF / offline) + seeded `summaries.jsonl`.~~ (Phase 2 on `phase2-summarise`)  
 4. ~~Entity profiles + rules matcher → `impact_flags.csv`.~~ (Phase 3 on `phase3-entities`)  
-5. Deploy Streamlit Community Cloud; paste live URL into README.  
-6. Start Phase 4 (confidence heuristics + override log) when ready.
+5. ~~Confidence heuristics + override log (`overrides.json`).~~ (Phase 4 on `phase4-judgement`)  
+6. Deploy Streamlit Community Cloud; paste live URL into README.  
+7. Start Phase 5 (timeline + filters + export dashboard) when ready.
 
-When Phase 3 is reviewed, say the word for Phase 4.
+When Phase 4 is reviewed, say the word for Phase 5.
