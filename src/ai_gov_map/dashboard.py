@@ -46,6 +46,25 @@ MONITOR_COLUMNS: tuple[str, ...] = (
     "matched_entity_names",
 )
 
+# Columns the Regulatory Feed table selects — keep in sync with app.py display.
+FEED_DISPLAY_COLUMNS: tuple[str, ...] = (
+    "date",
+    "title",
+    "source",
+    "effective_tier",
+    "needs_review",
+    "overridden",
+    "matched_entity_names",
+    "jurisdiction",
+    "url",
+)
+
+_BADGE_DEFAULTS: dict[str, Any] = {
+    "effective_tier": "",
+    "needs_review": False,
+    "overridden": False,
+}
+
 ACCENT = "#0072CE"
 
 TIER_COLORS: dict[str, str] = {
@@ -201,6 +220,38 @@ def _entity_matches_by_regulation(
     return mapping
 
 
+def ensure_monitor_columns(df: pd.DataFrame | None) -> pd.DataFrame:
+    """Guarantee ``MONITOR_COLUMNS`` (incl. badge cols) exist with safe defaults.
+
+    Defends against stale caches / partial frames so the Feed UI never KeyErrors
+    on ``effective_tier``, ``needs_review``, or ``overridden``.
+    """
+    if df is None:
+        return pd.DataFrame(columns=list(MONITOR_COLUMNS))
+    out = df.copy()
+    for col in MONITOR_COLUMNS:
+        if col in out.columns:
+            continue
+        if col in _BADGE_DEFAULTS:
+            out[col] = _BADGE_DEFAULTS[col]
+        elif col == "confidence":
+            out[col] = None
+        else:
+            out[col] = ""
+    # Stable column order for export / UI.
+    extras = [c for c in out.columns if c not in MONITOR_COLUMNS]
+    return out[list(MONITOR_COLUMNS) + extras]
+
+
+def feed_display_frame(df: pd.DataFrame) -> pd.DataFrame:
+    """Select Feed table columns that exist (intersection, order preserved)."""
+    if df is None or df.empty:
+        present = [c for c in FEED_DISPLAY_COLUMNS if df is not None and c in df.columns]
+        return pd.DataFrame(columns=present or list(FEED_DISPLAY_COLUMNS))
+    present = [c for c in FEED_DISPLAY_COLUMNS if c in df.columns]
+    return df[present]
+
+
 def build_monitor_frame(
     *,
     regulation_path: Path | str | None = None,
@@ -212,11 +263,12 @@ def build_monitor_frame(
     """Join regulation feed with summaries, overrides, and entity impact flags.
 
     Returns an empty DataFrame with ``MONITOR_COLUMNS`` when the regulation CSV
-    is missing (graceful empty state for the Streamlit page).
+    is missing (graceful empty state for the Streamlit page). Always includes
+    badge columns ``effective_tier``, ``needs_review``, and ``overridden``.
     """
     regs = load_regulation_frame(regulation_path)
     if regs.empty:
-        return pd.DataFrame(columns=list(MONITOR_COLUMNS))
+        return ensure_monitor_columns(pd.DataFrame(columns=list(MONITOR_COLUMNS)))
 
     summaries = _summaries_index(summaries_path)
     ov_path = Path(overrides_path) if overrides_path else DEFAULT_OVERRIDES
@@ -261,7 +313,7 @@ def build_monitor_frame(
             }
         )
 
-    df = pd.DataFrame(rows, columns=list(MONITOR_COLUMNS))
+    df = ensure_monitor_columns(pd.DataFrame(rows, columns=list(MONITOR_COLUMNS)))
     if not df.empty and "date" in df.columns:
         df = df.sort_values(by=["date", "id"], ascending=[False, True], kind="mergesort")
         df = df.reset_index(drop=True)
@@ -284,9 +336,11 @@ def filter_monitor(
     - ``query``: case-insensitive substring on ``title`` + ``text_excerpt``.
     """
     if df is None or df.empty:
-        return pd.DataFrame(columns=list(MONITOR_COLUMNS) if df is None else df.columns)
+        return ensure_monitor_columns(
+            pd.DataFrame(columns=list(MONITOR_COLUMNS) if df is None else df.columns)
+        )
 
-    out = df.copy()
+    out = ensure_monitor_columns(df)
 
     if entity_ids:
         wanted = {e.strip() for e in entity_ids if e and str(e).strip()}
@@ -558,6 +612,7 @@ def build_decay_bar_figure(
 
 __all__ = [
     "ACCENT",
+    "FEED_DISPLAY_COLUMNS",
     "MONITOR_COLUMNS",
     "RISK_TIERS",
     "TIER_COLORS",
@@ -567,6 +622,8 @@ __all__ = [
     "build_timeline_figure",
     "dataframe_to_csv",
     "dataframe_to_json",
+    "ensure_monitor_columns",
+    "feed_display_frame",
     "filter_actors_by_group",
     "filter_monitor",
     "format_refresh_label",

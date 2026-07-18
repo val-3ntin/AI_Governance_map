@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 
 from ai_gov_map.dashboard import (
+    FEED_DISPLAY_COLUMNS,
     MONITOR_COLUMNS,
     build_decay_bar_figure,
     build_heatmap_figure,
@@ -16,6 +17,8 @@ from ai_gov_map.dashboard import (
     build_timeline_figure,
     dataframe_to_csv,
     dataframe_to_json,
+    ensure_monitor_columns,
+    feed_display_frame,
     filter_monitor,
     format_refresh_label,
     last_fetched_at,
@@ -150,6 +153,11 @@ def test_build_monitor_frame_applies_effective_tier(fixture_dir: Path):
         impact_flags_path=fixture_dir / "impact_flags.csv",
     )
     assert list(df.columns) == list(MONITOR_COLUMNS)
+    # UI Feed table must be able to select every display column.
+    for col in FEED_DISPLAY_COLUMNS:
+        assert col in df.columns, f"monitor frame missing UI column {col!r}"
+    display = feed_display_frame(df)
+    assert list(display.columns) == list(FEED_DISPLAY_COLUMNS)
     assert len(df) == 3
     by_id = df.set_index("id")
     assert by_id.loc["doc:a", "effective_tier"] == "unacceptable"
@@ -161,6 +169,39 @@ def test_build_monitor_frame_applies_effective_tier(fixture_dir: Path):
     assert by_id.loc["doc:b", "needs_review"] is True or bool(by_id.loc["doc:b", "needs_review"])
     assert "hyp-pa-05" in str(by_id.loc["doc:b", "matched_entities"])
     assert "Northern Care" in str(by_id.loc["doc:c", "matched_entity_names"])
+
+
+def test_ensure_monitor_columns_backfills_badge_cols():
+    """Stale/partial frames (e.g. pre-PR#6 cache) must gain badge columns."""
+    partial = pd.DataFrame(
+        {
+            "id": ["doc:x"],
+            "date": ["2025-01-01"],
+            "title": ["Partial"],
+            "source": ["Test"],
+            "url": ["https://example.com"],
+            "jurisdiction": ["EU"],
+            "text_excerpt": ["x"],
+            "summary_tier": ["minimal"],
+            # intentionally missing: effective_tier, needs_review, overridden
+            "confidence": [0.5],
+            "matched_entities": [""],
+            "matched_entity_names": [""],
+        }
+    )
+    fixed = ensure_monitor_columns(partial)
+    for col in ("effective_tier", "needs_review", "overridden"):
+        assert col in fixed.columns
+    assert list(feed_display_frame(fixed).columns) == list(FEED_DISPLAY_COLUMNS)
+    # Selecting FEED_DISPLAY_COLUMNS must not raise (the Cloud KeyError).
+    _ = fixed[list(FEED_DISPLAY_COLUMNS)]
+
+
+def test_feed_display_frame_intersects_missing_cols():
+    slim = pd.DataFrame({"date": ["2025-01-01"], "title": ["Only title cols"]})
+    shown = feed_display_frame(slim)
+    assert list(shown.columns) == ["date", "title"]
+    assert "overridden" not in shown.columns
 
 
 def test_last_fetched_at_and_format(fixture_dir: Path):
